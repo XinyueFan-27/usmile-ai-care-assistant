@@ -1,0 +1,10 @@
+# 原始数据与含评论全文的文件不公开
+data/raw/
+data/processed/
+*.db
+*.sqlite
+.env
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+.venv/
