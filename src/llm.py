@@ -63,7 +63,11 @@ def chat(messages: list[dict], temperature: float = 0.1, model: str | None = Non
                 extra_body={"thinking": {"type": "disabled"}},
                 **kwargs,
             )
-            return resp.choices[0].message.content
+            msg = resp.choices[0].message
+            # 思考模式应已关闭；万一返回了 reasoning_content，只提醒，不使用
+            if getattr(msg, "reasoning_content", None):
+                print("  [警告] 返回了 reasoning_content，思考模式未关闭；已忽略，只用 content", flush=True)
+            return msg.content
         except Exception as e:  # noqa: BLE001
             # 只打印错误类型和状态码，不打印请求内容，避免泄露 Key
             status = getattr(e, "status_code", "")

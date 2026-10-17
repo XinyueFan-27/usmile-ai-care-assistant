@@ -27,7 +27,8 @@ PROC = ROOT / "data/processed"
 CLEAN = PROC / "reviews_clean.csv"
 QA_RAW = ROOT / "data/raw/京东商品问答_118条.csv"
 SCHEMA = ROOT / "docs/tag_schema.md"
-PROMPT_VERSION = "v1.1"
+PROMPT_VERSION = "v1.2"  # 代码 v1.2.1：标签名容错映射
+QA_PROMPT_VERSION = "qa-v1.1"  # D16 收紧 info_need
 
 
 def tag_model() -> str:
@@ -83,6 +84,9 @@ FEW_SHOT = """示例（只示范格式和口径）：
 评论：为了凑京豆写的评价，商品、包装、送货都给了五星好评
 输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":true,"overall_sentiment":"正"}
 
+评论：收到货很惊喜！包装严实没破损，和商品描述一致，做工细致，物流速度也快，客服回复及时又耐心，下次还会回购。
+输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":true,"overall_sentiment":"正"}
+
 评论：问了客服才知道，开关按钮靠下，找不到就开不开
 输出：{"tags":[{"tag":"使用方法与操作","sentiment":"负面","evidence":"开关按钮靠下，找不到就开不开"}],"non_product_tags":[{"tag":"客服/售后/退换","sentiment":"中性","evidence":"问了客服才知道"}],"info_need":true,"claim_gap":false,"generic":false,"overall_sentiment":"负"}"""
 
@@ -101,6 +105,7 @@ def review_system_prompt() -> str:
 2. 京东模板字段“包装外观：…”说的是产品外观，标“外观/手感/材质”；只有快递、配送、外箱破损才标“物流/包装”。
 3. “整体满意”“很好用”这类没有具体方面的话，不打任何标签。
 4. generic=true：整条评论没有任何具体产品信息，或是凑字数/凑京豆/通用模板好评（这类即使很长也算）。generic=true 时 tags 通常为空。
+   通用模板好评的特征：“收到货很惊喜”“与描述一致”“质量超出预期”“物流很快”“包装严实”“客服耐心”“会回购”“推荐给朋友”这类套话堆在一起，换成任何商品都能用，没有说到牙刷本身的具体体验。这类评论 generic=true，tags 和 non_product_tags 都留空。
 5. info_need=true：问题如果用户事先知道正确信息就能避免或缓解（不会用、不会选、不懂规则、以为是 A 实际是 B）。纯硬件故障、物流问题为 false。
 6. claim_gap=true：用户明确说和宣传/预期不一样。
 7. sentiment 只能是 正面 / 负面 / 中性；overall_sentiment 只能是 正 / 负 / 中。
@@ -116,7 +121,12 @@ def qa_system_prompt() -> str:
 
 {rules}
 
-要求：categories 是类别编号列表（Q1–Q8），第一个是主类别，最多 3 个；info_need 表示这个问题能否靠产品说明、科普或使用指导回答（true/false）。
+要求：
+1. categories 是类别编号列表（Q1–Q8），第一个是主类别，最多 3 个。
+2. info_need（true/false）：问题有确定答案，AI 助手能直接用官方说明、产品参数、口腔科普或使用指导回答，才为 true。
+   - true：参数（续航、频率、防水、充电方式）、使用方法、配件/刷头兼容、适用人群（敏感、正畸、补牙、儿童）、型号区别、“推荐哪个/怎么选”（可按用户需求推荐）。
+   - false：主观口碑（“好用吗”“是不是智商税”“效果怎么样”）、需要个案处理（坏了怎么办、正品验证、补贴、库存、售后政策争议）、个人偏好（颜色好不好看）。
+   - 一个问题同时包含两类时，只要有可以确定回答的部分就为 true。
 只输出一个 JSON 对象，格式：{{"categories":["Q2"],"info_need":true}}"""
 
 
@@ -184,13 +194,41 @@ def llm_json(system: str, user: str) -> dict:
     raise RuntimeError(f"JSON 解析失败：{last_err}")
 
 
+ALIASES = {  # 模型常写的近义名 → 编号
+    "售后": "N2", "退换": "N2", "退货": "N2", "换货": "N2", "客服": "N2", "维修": "N2",
+    "物流": "N1", "快递": "N1", "配送": "N1", "价保": "N3", "降价": "N3", "差价": "N3",
+    "发票": "N4", "赠品": "N5", "促销": "N5", "噪音": "F2", "震感": "F2", "续航": "F3", "充电": "F3",
+    "刷头": "F4", "刷毛": "F4", "牙龈": "F5", "识别": "F7", "智能": "F7", "app": "F8", "连接": "F8",
+    "外观": "F9", "手感": "F9", "材质": "F9", "质量": "F10", "故障": "F10", "性价比": "F11",
+    "清洁": "F1", "操作": "F6", "使用方法": "F6", "模式": "F6",
+}
+
+
+def to_code(name: str) -> str | None:
+    name = name.strip()
+    if name in F_TAGS or name in N_TAGS:
+        return name
+    key = name.replace(" ", "")
+    if key in NAME2CODE:
+        return NAME2CODE[key]
+    low = key.lower()
+    for alias, code in ALIASES.items():
+        if alias in low:
+            return code
+    return None
+
+
 def normalize_review(raw: dict, text: str) -> dict:
-    def clean_list(items, allowed):
+    unmapped = []
+
+    def clean_list(items):
         out, seen = [], set()
         for it in items or []:
-            tag = str(it.get("tag", "")).strip()
-            tag = NAME2CODE.get(tag.replace(" ", ""), tag)
-            if tag not in allowed or tag in seen:
+            tag = to_code(str(it.get("tag", "")))
+            if tag is None:
+                unmapped.append(str(it.get("tag", "")))
+                continue
+            if tag in seen:
                 continue
             seen.add(tag)
             sent = it.get("sentiment") if it.get("sentiment") in SENTIMENTS else "中性"
@@ -198,13 +236,26 @@ def normalize_review(raw: dict, text: str) -> dict:
             out.append({"tag": tag, "sentiment": sent, "evidence": ev, "evidence_ok": bool(ev) and ev in text})
         return out
 
+    # 两个列表合在一起，再按编号分回产品 / 非产品（模型有时放错列表）
+    pooled = clean_list(list(raw.get("tags") or []) + list(raw.get("non_product_tags") or []))
+    raw = {**raw, "_pooled": pooled}
+    tags = [t for t in raw["_pooled"] if t["tag"] in F_TAGS]
+    npt = [t for t in raw["_pooled"] if t["tag"] in N_TAGS]
+    generic = bool(raw.get("generic"))
+    # 规则兜底（v1.2）：没有任何产品标签，且非产品标签全是正面 → 没有产品信息，记为 generic
+    if not tags and all(t["sentiment"] == "正面" for t in npt):
+        generic = True
+    if generic:  # generic 评论只保留负面/中性的具体抱怨（如真实物流问题）
+        tags = [t for t in tags if t["sentiment"] != "正面"]
+        npt = [t for t in npt if t["sentiment"] != "正面"]
     return {
-        "tags": clean_list(raw.get("tags"), F_TAGS),
-        "non_product_tags": clean_list(raw.get("non_product_tags"), N_TAGS),
+        "tags": tags,
+        "non_product_tags": npt,
         "info_need": bool(raw.get("info_need")),
         "claim_gap": bool(raw.get("claim_gap")),
-        "generic": bool(raw.get("generic")),
+        "generic": generic,
         "overall_sentiment": raw.get("overall_sentiment") if raw.get("overall_sentiment") in OVERALL else "中",
+        "unmapped": unmapped,
     }
 
 
@@ -247,7 +298,7 @@ def tag_reviews(mode: str, limit: int | None) -> None:
 
     def fn_review(text):
         raw = rule_tag_review(text) if mode == "rule" else llm_json(system, f"评论原文：\n{text}")
-        return normalize_review(raw, text)
+        return {**normalize_review(raw, text), "raw": raw}
 
     items = [(i, t) for i, t in texts.items() if i not in low_info]
     cache = run_items(items, PROC / f"tag_cache_reviews_{mode}.jsonl", fn_review)
@@ -285,6 +336,8 @@ def tag_reviews(mode: str, limit: int | None) -> None:
     long_df.to_csv(PROC / "review_tags_long.csv", index=False, encoding="utf-8-sig")
 
     n_missing = len(df) - len(wide)
+    unm = [u for rid in df["review_id"] for u in (cache.get(rid) or {}).get("unmapped", [])]
+    print(f"未能映射的标签名：{len(unm)} 个 {sorted(set(unm))[:10]}")
     print(f"评论：完成 {len(wide)}/{len(df)} 条（失败 {n_missing}）；标签 {len(long_df)} 个；"
           f"evidence 原文核对通过 {long_df['evidence_ok'].sum()}/{len(long_df)}")
 
@@ -308,6 +361,7 @@ def tag_qa(mode: str, limit: int | None) -> None:
     q["info_need"] = q["qa_id"].map(lambda i: cache[i]["info_need"] if i in cache else None)
     q["tag_mode"] = mode
     q["tag_model"] = tag_model() if mode == "llm" else "rule"
+    q["prompt_version"] = QA_PROMPT_VERSION
     q.to_csv(PROC / "qa_tagged.csv", index=False, encoding="utf-8-sig")
     print(f"问答：完成 {(q['categories'] != '').sum()}/{len(q)} 条")
 
