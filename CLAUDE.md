@@ -54,7 +54,7 @@
 - 模型：打标签和生成用智谱 GLM-4.7-Flash（免费，D4 更新），备选 Gemini 免费额度。没有 Key 时代码要能退回到规则版或 mock 模式，保证能跑。Key 放在 `.env`，不提交。模型名从 `.env` 的 `ZHIPU_MODEL` 读取，不写死在代码里；调用走 OpenAI 兼容接口（`ZHIPU_BASE_URL`，paas/v4），关闭思考模式，加重试和限速（见 `src/llm.py`）；测试时绝不打印 Key。
 - 向量化：本地 bge-small-zh + FAISS。界面：Streamlit。
 - 仓库：GitHub 公开仓库 `usmile-ai-care-assistant`。README 首行注明“个人作品集，非 usmile 官方”。
-- PRD：Markdown 写在 `docs/`，最后导出 PDF；原型先做 3 屏（入口、回答页、拒答页）。
+- PRD：Markdown 写在 `docs/`，最后导出 PDF；原型 6 屏（首页、选购问卷、推荐卡、购后首次设置、问答页、边界页）+ 周报 1 屏低保真标 V2（D26，更新 D7）。Demo 范围和指标见 `docs/concept_card.md` 第 10、11 节。
 - 标签：两层结构，即功能标签 + 需求主题，见第 7 节。
 - PM 技能：只装 6 个，见第 9 节。
 
@@ -126,9 +126,9 @@ app.py             Streamlit Demo
 | 日期 | 步骤 | 产出 | 状态 |
 |---|---|---|---|
 | 10/16 | 数据采集 | data/raw/ 三个文件 | ✅ 完成 |
-| 10/17 | ① 清洗 → ② 确认标签表 → ③ LLM 打标签 → ④ 抽检 → ⑤ 存入 SQLite + SQL 分析 → ⑥ 痛点矩阵 | `reviews_clean.csv`、`reviews_tagged.csv`、`analysis.sql`、`pain_matrix.png`、3–5 条洞察 | 待开始 |
-| 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 3 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、原型、`kb/`、`sources.md` | |
-| 10/19 | ⑪ RAG Demo v1 → ⑫ 20 题评测 v1 | `app.py`、`src/rag.py`、`eval_results_v1.csv` | |
+| 10/17 | ① 清洗 → ② 确认标签表 → ③ LLM 打标签 → ④ 抽检 → ⑤ 存入 SQLite + SQL 分析 → ⑥ 痛点矩阵 | `reviews_clean.csv`、`reviews_tagged.csv`、`analysis.sql`、`pain_matrix.png`、3–5 条洞察 | ✅ 10/16 提前完成 |
+| 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、原型、`kb/`、`sources.md` | ⑦ ✅ 10/16 完成 |
+| 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 20 题评测 v1 | `app.py`、`src/rag.py`、`eval_results_v1.csv` | |
 | 10/20 上午 | ⑬ 根据 bad case 改一轮 → 评测 v2 → ⑭ README + 简历 bullet 填数 → 投递 | `eval_results_v2.csv`、README、简历 | |
 
 **优先级**：①–⑧ 必须完成（简历的硬证据）。⑪–⑬ 是加分项，来不及就在简历上只写已完成的部分。
@@ -153,12 +153,11 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**步骤 ① 清洗**，写 `src/clean.py`：
-1. 读取 `data/raw/` 下的评论 CSV。
-2. 按第 5 节的规则合并重复、处理占位正文、加 `is_recent_12m`、`maybe_truncated` 标记。
-3. 生成 `full_text` = 正文 + 追评。
-4. 标记低信息量短评：`full_text` 少于 8 字且只有泛泛好评（“不错”“好用”）的，标为 `low_info`，不删除，分析时排除。
-5. 输出 `data/processed/reviews_clean.csv`，打印各型号 × `sample_bucket` 的条数。
-6. 更新 METHODS.md 第 1 步，然后给 Melody 看结果。
+**已完成（10/16）**：①–⑦。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`results/`。决策到 D26。
 
-开始前，先确认 Melody 的环境：Mac 还是 Windows、Python 版本，以及有没有 GLM 的 Key。
+**步骤 ⑧ PRD v1.0**，写 `docs/PRD_v1.0.md`：
+1. 用 `prd-development` 的结构：问题陈述（带证据）、目标用户、方案、不做什么、待解决问题；用 `user-story` 写 Gherkin 验收标准（之后和 20 道评测题一一对应）；用 `derisk-measurement-advisor` 写风险一节。
+2. 内容以 `docs/concept_card.md` v1.0 为准：5 题测评与推荐逻辑、购后功能 MVP / V2、两条约束、指标、二期反馈洞察（D23）。
+3. 所有数字引用 `results/`；引号里只用原文（脚本核对）；内部数据一律写【假设】或【待验证】。
+
+环境：macOS，Python 3.13；用 `.venv/bin/python`。GLM：打标签用 `ZHIPU_TAG_MODEL`（glm-4-flash-250414），RAG 生成用 `ZHIPU_MODEL`（glm-4.7-flash），都从 `.env` 读。
