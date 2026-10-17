@@ -18,7 +18,7 @@
 |---|---|
 | 深入业务，识别 AI 机会 | 评论 + 问答痛点分析，判断哪些痛点适合用 AI 解决 |
 | 规划、需求、原型、方案，明确指标和验收标准 | PRD v1.0 + 3 屏原型 + Gherkin 验收标准 |
-| 协同算法/研发推进开发、上线、迭代 | PRD 分工表 + bad case 迭代记录 |
+| 协同算法/研发推进开发、上线、迭代 | PRD 依赖与约束 + bad case 迭代记录 |
 | 搭建指标体系 | 北极星 + 过程 + 护栏指标 |
 | 会 SQL | `sql/analysis.sql`，所有分析数字可复现 |
 | 用 AI 工具解决实际问题 | LLM 批量打标签 + 人工抽检；全程用 Claude Code 实现 |
@@ -153,9 +153,9 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑧。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D27。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。
+**已完成（10/16）**：①–⑧。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D28。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
-**下一步：⑨ 6 屏原型（对应 PRD 第 5.6 节和 AC-01 – AC-20）→ ⑩ 知识库原文（解决 PRD 待解决问题 O1、O2、O4、O5）。**
+**下一步：⑨ 6 屏原型（对应 PRD 第 5.2 节页面清单和第 6 章验收标准）→ ⑩ 知识库原文（解决 PRD 待解决问题 O1、O2、O4、O5）。**
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
