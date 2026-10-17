@@ -72,8 +72,8 @@ def sample() -> None:
 
 def score() -> None:
     s = pd.read_csv(SHEET, dtype=str, keep_default_na=False, encoding="utf-8-sig")
-    for c in CHECK_COLS:
-        s[c] = s[c].str.strip().str.upper()
+    for c in CHECK_COLS:  # 也接受 T/F、TRUE/FALSE、对/错
+        s[c] = s[c].str.strip().str.upper().replace({"T": "Y", "TRUE": "Y", "对": "Y", "F": "N", "FALSE": "N", "错": "N"})
     filled = s[s[CHECK_COLS].isin(["Y", "N"]).all(axis=1)]
     if len(filled) < len(s):
         print(f"注意：{len(s) - len(filled)} 条没填完整，只统计已填的 {len(filled)} 条")
