@@ -18,7 +18,8 @@ load_dotenv(ROOT / ".env")
 
 DEFAULT_BASE_URL = "https://open.bigmodel.cn/api/paas/v4"
 MIN_INTERVAL = 1.0  # 两次调用最少间隔（秒）
-MAX_RETRIES = 3
+MAX_RETRIES = 5
+BACKOFF = [5, 15, 30, 60]  # 限流（429）时的等待秒数
 
 _last_call = 0.0
 
@@ -45,8 +46,8 @@ def _client() -> OpenAI:
     )
 
 
-def chat(messages: list[dict], temperature: float = 0.1, **kwargs) -> str:
-    """调用一次对话，返回模型回复文本。"""
+def chat(messages: list[dict], temperature: float = 0.1, model: str | None = None, **kwargs) -> str:
+    """调用一次对话，返回模型回复文本。model 不传时用 ZHIPU_MODEL。"""
     global _last_call
     client = _client()
     for attempt in range(1, MAX_RETRIES + 1):
@@ -56,7 +57,7 @@ def chat(messages: list[dict], temperature: float = 0.1, **kwargs) -> str:
         _last_call = time.time()
         try:
             resp = client.chat.completions.create(
-                model=model_name(),
+                model=model or model_name(),
                 messages=messages,
                 temperature=temperature,
                 extra_body={"thinking": {"type": "disabled"}},
@@ -66,7 +67,10 @@ def chat(messages: list[dict], temperature: float = 0.1, **kwargs) -> str:
         except Exception as e:  # noqa: BLE001
             # 只打印错误类型和状态码，不打印请求内容，避免泄露 Key
             status = getattr(e, "status_code", "")
+            code = (getattr(e, "body", None) or {}).get("code", "") if isinstance(getattr(e, "body", None), dict) else ""
             if attempt == MAX_RETRIES:
-                raise RuntimeError(f"GLM 调用失败（{type(e).__name__} {status}），已重试 {MAX_RETRIES} 次") from None
-            time.sleep(2 ** attempt)
+                raise RuntimeError(f"GLM 调用失败（{type(e).__name__} {status} {code}），已重试 {MAX_RETRIES} 次") from None
+            delay = BACKOFF[min(attempt - 1, len(BACKOFF) - 1)] if status == 429 else 2 ** attempt
+            print(f"  [重试 {attempt}] {status} {code}，{delay}s 后再试", flush=True)
+            time.sleep(delay)
     raise AssertionError("unreachable")
