@@ -155,7 +155,7 @@ app.py             Streamlit Demo
 
 **已完成（10/16）**：①–⑧。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D28。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
-**下一步：⑨ 6 屏原型（对应 PRD 第 5.2 节页面清单和第 6 章验收标准）→ ⑩ 知识库原文（解决 PRD 待解决问题 O1、O2、O4、O5）。**
+**下一步：⑨ 6 屏原型（对应 PRD 第 5.2 节页面清单和第 6 章验收标准）→ ⑩ 知识库原文（解决 PRD 第 11 章待决问题 1–4）。**
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
