@@ -93,6 +93,7 @@ README.md
 data/raw/          原始数据（不提交）
 data/processed/    清洗后数据（不提交，含全文）
 sql/analysis.sql   所有分析 SQL
+results/           SQL 统计结果（只有数字，可提交）
 src/               Python 脚本（clean / tag / analyze / rag / eval）
 kb/                知识库原文（官方 + 科普），每块带来源链接和日期
 eval/              评测集与结果
