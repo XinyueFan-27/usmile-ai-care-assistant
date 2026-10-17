@@ -127,7 +127,7 @@ app.py             Streamlit Demo
 |---|---|---|---|
 | 10/16 | 数据采集 | data/raw/ 三个文件 | ✅ 完成 |
 | 10/17 | ① 清洗 → ② 确认标签表 → ③ LLM 打标签 → ④ 抽检 → ⑤ 存入 SQLite + SQL 分析 → ⑥ 痛点矩阵 | `reviews_clean.csv`、`reviews_tagged.csv`、`analysis.sql`、`pain_matrix.png`、3–5 条洞察 | ✅ 10/16 提前完成 |
-| 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、原型、`kb/`、`sources.md` | ⑦ ✅ 10/16 完成 |
+| 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、原型、`kb/`、`sources.md` | ⑦ ⑧ ✅ 10/16 完成 |
 | 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 20 题评测 v1 | `app.py`、`src/rag.py`、`eval_results_v1.csv` | |
 | 10/20 上午 | ⑬ 根据 bad case 改一轮 → 评测 v2 → ⑭ README + 简历 bullet 填数 → 投递 | `eval_results_v2.csv`、README、简历 | |
 
@@ -153,7 +153,11 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑦。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`results/`。决策到 D26。
+**已完成（10/16）**：①–⑧。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D27。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。
+
+**下一步：⑨ 6 屏原型（对应 PRD 第 5.6 节和 AC-01 – AC-20）→ ⑩ 知识库原文（解决 PRD 待解决问题 O1、O2、O4、O5）。**
+
+以下是步骤 ⑧ 的原始说明，留作参考：
 
 **步骤 ⑧ PRD v1.0**，写 `docs/PRD_v1.0.md`：
 1. 用 `prd-development` 的结构：问题陈述（带证据）、目标用户、方案、不做什么、待解决问题；用 `user-story` 写 Gherkin 验收标准（之后和 20 道评测题一一对应）；用 `derisk-measurement-advisor` 写风险一节。
