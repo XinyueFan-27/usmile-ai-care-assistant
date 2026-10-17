@@ -27,7 +27,7 @@ PROC = ROOT / "data/processed"
 CLEAN = PROC / "reviews_clean.csv"
 QA_RAW = ROOT / "data/raw/京东商品问答_118条.csv"
 SCHEMA = ROOT / "docs/tag_schema.md"
-PROMPT_VERSION = "v1.2"  # 代码 v1.2.1：标签名容错映射
+PROMPT_VERSION = "v1.2.1+v1.3"  # D19 合并；v1.3 = D18：新增 ai_can_help，claim_gap 补充“没想象的”类说法
 QA_PROMPT_VERSION = "qa-v1.1"  # D16 收紧 info_need
 
 
@@ -79,16 +79,16 @@ TAG_LIST = """产品标签（tags，用中文名）：
 
 FEW_SHOT = """示例（只示范格式和口径）：
 评论：包装外观：好看操作方式：简单清洁效果：好
-输出：{"tags":[{"tag":"外观/手感/材质","sentiment":"正面","evidence":"包装外观：好看"},{"tag":"使用方法与操作","sentiment":"正面","evidence":"操作方式：简单"},{"tag":"清洁力","sentiment":"正面","evidence":"清洁效果：好"}],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":false,"overall_sentiment":"正"}
+输出：{"tags":[{"tag":"外观/手感/材质","sentiment":"正面","evidence":"包装外观：好看"},{"tag":"使用方法与操作","sentiment":"正面","evidence":"操作方式：简单"},{"tag":"清洁力","sentiment":"正面","evidence":"清洁效果：好"}],"non_product_tags":[],"info_need":false,"claim_gap":false,"ai_can_help":false,"generic":false,"overall_sentiment":"正"}
 
 评论：为了凑京豆写的评价，商品、包装、送货都给了五星好评
-输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":true,"overall_sentiment":"正"}
+输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"ai_can_help":false,"generic":true,"overall_sentiment":"正"}
 
 评论：收到货很惊喜！包装严实没破损，和商品描述一致，做工细致，物流速度也快，客服回复及时又耐心，下次还会回购。
-输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":true,"overall_sentiment":"正"}
+输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"ai_can_help":false,"generic":true,"overall_sentiment":"正"}
 
 评论：问了客服才知道，开关按钮靠下，找不到就开不开
-输出：{"tags":[{"tag":"使用方法与操作","sentiment":"负面","evidence":"开关按钮靠下，找不到就开不开"}],"non_product_tags":[{"tag":"客服/售后/退换","sentiment":"中性","evidence":"问了客服才知道"}],"info_need":true,"claim_gap":false,"generic":false,"overall_sentiment":"负"}"""
+输出：{"tags":[{"tag":"使用方法与操作","sentiment":"负面","evidence":"开关按钮靠下，找不到就开不开"}],"non_product_tags":[{"tag":"客服/售后/退换","sentiment":"中性","evidence":"问了客服才知道"}],"info_need":true,"claim_gap":false,"ai_can_help":true,"generic":false,"overall_sentiment":"负"}"""
 
 
 def review_system_prompt() -> str:
@@ -107,7 +107,8 @@ def review_system_prompt() -> str:
 4. generic=true：整条评论没有任何具体产品信息，或是凑字数/凑京豆/通用模板好评（这类即使很长也算）。generic=true 时 tags 通常为空。
    通用模板好评的特征：“收到货很惊喜”“与描述一致”“质量超出预期”“物流很快”“包装严实”“客服耐心”“会回购”“推荐给朋友”这类套话堆在一起，换成任何商品都能用，没有说到牙刷本身的具体体验。这类评论 generic=true，tags 和 non_product_tags 都留空。
 5. info_need=true：问题如果用户事先知道正确信息就能避免或缓解（不会用、不会选、不懂规则、以为是 A 实际是 B）。纯硬件故障、物流问题为 false。
-6. claim_gap=true：用户明确说和宣传/预期不一样。
+6. claim_gap=true：实际效果低于宣传，或低于用户买之前的预期。包括提到宣传、广告、噱头，以及“没有想象的那么…”“期望太高”“以为…结果…”。只说贵、不值、配不上价格的，不算（那是“性价比”）。
+6b. ai_can_help=true：一个只提供信息的护齿问答助手（产品说明、使用指导、选购建议、口腔科普；不能修产品、不能处理售后、价保、物流）能针对这条评论的问题给出有实际帮助的提示。例：“不能关机”→可告知关机/防误触方法；“刷头有点硬”→可提示敏感牙龈选软毛刷头、轻柔模式；“电池不耐用”→可说明真实续航和充电习惯。纯故障需维修、降价价保、物流、客服态度为 false。没有问题的正面评论为 false。info_need=true 时 ai_can_help 一定为 true。
 7. sentiment 只能是 正面 / 负面 / 中性；overall_sentiment 只能是 正 / 负 / 中。
 8. evidence 必须从评论原文逐字复制一段连续文字，不改写、不补字，30 字以内。
 9. 只输出一个 JSON 对象，不要解释。
@@ -253,6 +254,7 @@ def normalize_review(raw: dict, text: str) -> dict:
         "non_product_tags": npt,
         "info_need": bool(raw.get("info_need")),
         "claim_gap": bool(raw.get("claim_gap")),
+        "ai_can_help": (bool(raw.get("ai_can_help")) or bool(raw.get("info_need"))) and not (generic and not tags and not npt),
         "generic": generic,
         "overall_sentiment": raw.get("overall_sentiment") if raw.get("overall_sentiment") in OVERALL else "中",
         "unmapped": unmapped,
@@ -303,7 +305,7 @@ def tag_reviews(mode: str, limit: int | None) -> None:
     items = [(i, t) for i, t in texts.items() if i not in low_info]
     cache = run_items(items, PROC / f"tag_cache_reviews_{mode}.jsonl", fn_review)
     for i in low_info:
-        cache[i] = {"id": i, "tags": [], "non_product_tags": [], "info_need": False, "claim_gap": False,
+        cache[i] = {"id": i, "tags": [], "non_product_tags": [], "info_need": False, "claim_gap": False, "ai_can_help": False,
                     "generic": True, "overall_sentiment": "正"}
 
     wide, long = [], []
@@ -312,6 +314,7 @@ def tag_reviews(mode: str, limit: int | None) -> None:
         if r is None:
             continue
         row = {"review_id": rid, "info_need": r["info_need"], "claim_gap": r["claim_gap"],
+               "ai_can_help": r.get("ai_can_help", False),
                "generic": r["generic"], "overall_sentiment": r["overall_sentiment"]}
         for t in r["tags"] + r["non_product_tags"]:
             row[t["tag"]] = t["sentiment"]

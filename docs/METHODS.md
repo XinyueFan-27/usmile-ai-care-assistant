@@ -177,6 +177,13 @@
 
 脚本 `score` 同时接受 Y/N、T/F、对/错。
 
+**抽检后的调整（D18、D19）**
+- D18：info_need 保持严格定义；新增 `ai_can_help`（只提供信息的护齿助手能否给出有用提示，比 info_need 宽）；claim_gap 补充“没有想象的那么…”“期望太高”等说法，只因价格表达的落差仍算“性价比”。标签定义表升到 v1.1，提示词升到 v1.3。
+- v1.3 在 6 条争议评论上：R013、R040、R065、R080 按新口径判对；R099（电池不耐用）ai_can_help 仍为 false，R061 claim_gap 判为 true，待第二批抽检看整体。
+- **一致性发现**：同一模型、temperature 0.1，v1.3 重跑后，抽检过的 50 条中只有 36 条（72%）标签集合和上一轮相同。主要差在边缘标签（如“整体满意”是否算外观、顺带提到的使用方法）。说明单次 LLM 标注有波动，必须靠人工抽检把关。
+- D19：合并两轮结果（`src/merge_tags.py`）。标签、情感、generic、info_need、整体情感用 v1.2.1（已抽检 88%）；claim_gap、ai_can_help 用 v1.3。合并后：claim_gap 16 条，ai_can_help 27 条，info_need 11 条（非 generic 141 条中）。
+- 第二批抽检（`spotcheck.py sample2`）：只看 info_need / claim_gap / ai_can_help 三列，20 条，不与第一批重复；10 条从标为 true 的抽（查误标），10 条从其余抽（查漏标）。待 Melody 填写。
+
 ## 第 5 步：SQLite + SQL 分析（待完成）
 
 ## 第 6 步：痛点矩阵与洞察（待完成）
