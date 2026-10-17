@@ -5,7 +5,7 @@
   .venv/bin/python src/tag.py                 # 全量（评论 + 问答）
   .venv/bin/python src/tag.py --mode rule     # 没有 Key 时用关键词规则版
 
-- LLM：src/llm.py（GLM，模型名读 .env 的 ZHIPU_MODEL），一次一条，结果缓存到 jsonl，可断点续跑。
+- LLM：src/llm.py（GLM，打标签模型读 .env 的 ZHIPU_TAG_MODEL，见 D15），一次一条，结果缓存到 jsonl，可断点续跑。
 - low_info 评论不调用 LLM，直接记为 generic。
 - evidence 必须是原文子串（借用 voice-of-customer-miner 的“原话不改写”规则），程序自动核对并记 evidence_ok。
 输出（data/processed/，不提交）：
@@ -16,6 +16,7 @@
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 
@@ -26,7 +27,15 @@ PROC = ROOT / "data/processed"
 CLEAN = PROC / "reviews_clean.csv"
 QA_RAW = ROOT / "data/raw/京东商品问答_118条.csv"
 SCHEMA = ROOT / "docs/tag_schema.md"
-PROMPT_VERSION = "v1.0"
+PROMPT_VERSION = "v1.1"
+
+
+def tag_model() -> str:
+    """打标签专用模型，读 .env 的 ZHIPU_TAG_MODEL（D15）。"""
+    name = os.getenv("ZHIPU_TAG_MODEL")
+    if not name:
+        raise RuntimeError("未设置 ZHIPU_TAG_MODEL，请在 .env 中填写")
+    return name
 
 F_TAGS = {
     "F1": "清洁力", "F2": "噪音/震感", "F3": "续航/充电", "F4": "刷头", "F5": "牙龈敏感/出血",
@@ -37,6 +46,7 @@ N_TAGS = {"N1": "物流/包装", "N2": "客服/售后/退换", "N3": "价格变�
 Q_CATS = {"Q1": "选购对比", "Q2": "适用人群", "Q3": "使用方法", "Q4": "刷头与配件",
           "Q5": "售后与质量", "Q6": "产品参数", "Q7": "效果与口碑", "Q8": "其他"}
 SENTIMENTS = {"正面", "负面", "中性"}
+NAME2CODE = {v.replace(" ", ""): k for k, v in {**F_TAGS, **N_TAGS}.items()}
 OVERALL = {"正", "负", "中"}
 
 
@@ -47,19 +57,57 @@ def schema_section(start: str, end: str) -> str:
     return s[s.index(start): s.index(end)].strip()
 
 
+TAG_LIST = """产品标签（tags，用中文名）：
+- 清洁力：刷得干不干净、牙缝清洁
+- 噪音/震感：声音大小、震动强弱、手麻嘴麻、力度够不够
+- 续航/充电：一次充电用多久、充电方式、充不进电
+- 刷头：刷头/刷毛软硬、炸毛、价格、更换、兼容
+- 牙龈敏感/出血：牙龈出血肿胀、牙齿敏感、伤牙龈/不伤牙龈
+- 使用方法与操作：模式/档位、按键开关、设置、上手难易、操作简单与否、定时
+- 智能识别准确度：区域识别、压力感应、漏刷提醒准不准
+- App 与连接：App、蓝牙连接、权限、适配、需要连手机
+- 外观/手感/材质：颜值、握感、重量、做工观感、气味
+- 质量/故障：坏了、失灵、品控、耐不耐用
+- 性价比：值不值、贵、智商税、实惠
+非产品标签（non_product_tags，用中文名）：
+- 物流/包装：配送快慢、快递员、驿站、快递外箱或包装盒破损
+- 客服/售后/退换：客服态度、维修、退换货
+- 价格变动/价保：买完降价、价保、差价
+- 发票：开票
+- 赠品/促销：赠品、活动规则"""
+
+FEW_SHOT = """示例（只示范格式和口径）：
+评论：包装外观：好看操作方式：简单清洁效果：好
+输出：{"tags":[{"tag":"外观/手感/材质","sentiment":"正面","evidence":"包装外观：好看"},{"tag":"使用方法与操作","sentiment":"正面","evidence":"操作方式：简单"},{"tag":"清洁力","sentiment":"正面","evidence":"清洁效果：好"}],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":false,"overall_sentiment":"正"}
+
+评论：为了凑京豆写的评价，商品、包装、送货都给了五星好评
+输出：{"tags":[],"non_product_tags":[],"info_need":false,"claim_gap":false,"generic":true,"overall_sentiment":"正"}
+
+评论：问了客服才知道，开关按钮靠下，找不到就开不开
+输出：{"tags":[{"tag":"使用方法与操作","sentiment":"负面","evidence":"开关按钮靠下，找不到就开不开"}],"non_product_tags":[{"tag":"客服/售后/退换","sentiment":"中性","evidence":"问了客服才知道"}],"info_need":true,"claim_gap":false,"generic":false,"overall_sentiment":"负"}"""
+
+
 def review_system_prompt() -> str:
     rules = schema_section("## 一、功能标签", "## 四、")
-    return f"""你是电动牙刷用户评论的标注员。严格按下面的标签定义给一条京东评论打标签。
+    return f"""你是电动牙刷用户评论的标注员。给一条京东评论打标签。
 
+{TAG_LIST}
+
+详细定义（含“包含 / 不包含”）：
 {rules}
 
-要求：
-1. 只标评论里明确提到的内容，不推测。没提到就不标。
-2. tags 只能用 F1–F11，non_product_tags 只能用 N1–N5；每个标签的 sentiment 只能是 正面 / 负面 / 中性。
-3. evidence 必须是评论原文中连续的一段文字，逐字复制，不改写、不补字，尽量短（30 字以内）。
-4. info_need / claim_gap / generic 为 true 或 false；overall_sentiment 只能是 正 / 负 / 中。
-5. 只输出一个 JSON 对象，格式：
-{{"tags":[{{"tag":"F7","sentiment":"负面","evidence":"..."}}],"non_product_tags":[{{"tag":"N2","sentiment":"负面","evidence":"..."}}],"info_need":false,"claim_gap":false,"generic":false,"overall_sentiment":"负"}}"""
+规则：
+1. 评论里每提到一个上面的方面，就打一个标签，不要漏；没提到就不标，不推测。例如“刷的干净”→清洁力，“毛很软”→刷头，“操作简单”→使用方法与操作。
+2. 京东模板字段“包装外观：…”说的是产品外观，标“外观/手感/材质”；只有快递、配送、外箱破损才标“物流/包装”。
+3. “整体满意”“很好用”这类没有具体方面的话，不打任何标签。
+4. generic=true：整条评论没有任何具体产品信息，或是凑字数/凑京豆/通用模板好评（这类即使很长也算）。generic=true 时 tags 通常为空。
+5. info_need=true：问题如果用户事先知道正确信息就能避免或缓解（不会用、不会选、不懂规则、以为是 A 实际是 B）。纯硬件故障、物流问题为 false。
+6. claim_gap=true：用户明确说和宣传/预期不一样。
+7. sentiment 只能是 正面 / 负面 / 中性；overall_sentiment 只能是 正 / 负 / 中。
+8. evidence 必须从评论原文逐字复制一段连续文字，不改写、不补字，30 字以内。
+9. 只输出一个 JSON 对象，不要解释。
+
+{FEW_SHOT}"""
 
 
 def qa_system_prompt() -> str:
@@ -128,7 +176,7 @@ def llm_json(system: str, user: str) -> dict:
     last_err = None
     for _ in range(2):  # JSON 解析失败再试一次
         reply = chat([{"role": "system", "content": system}, {"role": "user", "content": user}],
-                     temperature=0.1, response_format={"type": "json_object"})
+                     temperature=0.1, model=tag_model(), response_format={"type": "json_object"})
         try:
             return parse_json(reply)
         except (json.JSONDecodeError, AttributeError) as e:
@@ -141,6 +189,7 @@ def normalize_review(raw: dict, text: str) -> dict:
         out, seen = [], set()
         for it in items or []:
             tag = str(it.get("tag", "")).strip()
+            tag = NAME2CODE.get(tag.replace(" ", ""), tag)
             if tag not in allowed or tag in seen:
                 continue
             seen.add(tag)
@@ -229,6 +278,7 @@ def tag_reviews(mode: str, limit: int | None) -> None:
             out[c] = ""
     out[tag_cols] = out[tag_cols].fillna("")
     out["tag_mode"] = mode
+    out["tag_model"] = tag_model() if mode == "llm" else "rule"
     out["prompt_version"] = PROMPT_VERSION
     out.to_csv(PROC / "reviews_tagged.csv", index=False, encoding="utf-8-sig")
     long_df = pd.DataFrame(long, columns=["review_id", "tag", "tag_name", "tag_type", "sentiment", "evidence", "evidence_ok"])
@@ -257,6 +307,7 @@ def tag_qa(mode: str, limit: int | None) -> None:
     q["main_category_name"] = q["main_category"].map(Q_CATS)
     q["info_need"] = q["qa_id"].map(lambda i: cache[i]["info_need"] if i in cache else None)
     q["tag_mode"] = mode
+    q["tag_model"] = tag_model() if mode == "llm" else "rule"
     q.to_csv(PROC / "qa_tagged.csv", index=False, encoding="utf-8-sig")
     print(f"问答：完成 {(q['categories'] != '').sum()}/{len(q)} 条")
 
@@ -270,7 +321,7 @@ def main() -> None:
     if args.mode is None:
         from llm import has_key
         args.mode = "llm" if has_key() else "rule"
-    print(f"模式：{args.mode}")
+    print(f"模式：{args.mode}" + (f"，模型：{tag_model()}" if args.mode == "llm" else ""))
     if args.only != "qa":
         tag_reviews(args.mode, args.limit)
     if args.only != "reviews":
