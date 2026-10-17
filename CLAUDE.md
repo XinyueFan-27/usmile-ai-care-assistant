@@ -50,7 +50,7 @@
 ## 4. 已定决策（详见 docs/DECISIONS.md）
 
 - 工具：用 Claude Code 实现；数据由 Codex 操作浏览器从京东采集（已完成）。
-- 产品方向：**已按数据确定（D21）**：护齿问答助手，聚焦选购和使用指导；售后写进 PRD“不做什么”。
+- 产品方向：**已按数据确定（D21）**：护齿问答助手，聚焦选购和使用指导；售后写进 PRD“不做什么”。 载体与形态（D24）：微信小程序，售前 5–6 题定制选购测评 → 购后使用指导 → 订阅制每周周报和提醒；“引入私域”是商业假设。
 - 模型：打标签和生成用智谱 GLM-4.7-Flash（免费，D4 更新），备选 Gemini 免费额度。没有 Key 时代码要能退回到规则版或 mock 模式，保证能跑。Key 放在 `.env`，不提交。模型名从 `.env` 的 `ZHIPU_MODEL` 读取，不写死在代码里；调用走 OpenAI 兼容接口（`ZHIPU_BASE_URL`，paas/v4），关闭思考模式，加重试和限速（见 `src/llm.py`）；测试时绝不打印 Key。
 - 向量化：本地 bge-small-zh + FAISS。界面：Streamlit。
 - 仓库：GitHub 公开仓库 `usmile-ai-care-assistant`。README 首行注明“个人作品集，非 usmile 官方”。
