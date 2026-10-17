@@ -17,7 +17,7 @@
 | JD | 证据 |
 |---|---|
 | 深入业务，识别 AI 机会 | 评论 + 问答痛点分析，判断哪些痛点适合用 AI 解决 |
-| 规划、需求、原型、方案，明确指标和验收标准 | PRD v1.0 + 3 屏原型 + Gherkin 验收标准 |
+| 规划、需求、原型、方案，明确指标和验收标准 | PRD v1.0 + 6 屏可点击原型（+ 周报 V2）+ Gherkin 验收标准 |
 | 协同算法/研发推进开发、上线、迭代 | PRD 依赖与约束 + bad case 迭代记录 |
 | 搭建指标体系 | 北极星 + 过程 + 护栏指标 |
 | 会 SQL | `sql/analysis.sql`，所有分析数字可复现 |
@@ -127,7 +127,7 @@ app.py             Streamlit Demo
 |---|---|---|---|
 | 10/16 | 数据采集 | data/raw/ 三个文件 | ✅ 完成 |
 | 10/17 | ① 清洗 → ② 确认标签表 → ③ LLM 打标签 → ④ 抽检 → ⑤ 存入 SQLite + SQL 分析 → ⑥ 痛点矩阵 | `reviews_clean.csv`、`reviews_tagged.csv`、`analysis.sql`、`pain_matrix.png`、3–5 条洞察 | ✅ 10/16 提前完成 |
-| 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、原型、`kb/`、`sources.md` | ⑦ ⑧ ✅ 10/16 完成 |
+| 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、`prototype/`、`kb/`、`sources.md` | ⑦ ⑧ ⑨ ✅ 10/16 完成；⑩ 待做 |
 | 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 20 题评测 v1 | `app.py`、`src/rag.py`、`eval_results_v1.csv` | |
 | 10/20 上午 | ⑬ 根据 bad case 改一轮 → 评测 v2 → ⑭ README + 简历 bullet 填数 → 投递 | `eval_results_v2.csv`、README、简历 | |
 
@@ -153,9 +153,11 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑧。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D28。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D29。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
-**下一步：⑨ 6 屏原型（对应 PRD 第 5.2 节页面清单和第 6 章验收标准）→ ⑩ 知识库原文（解决 PRD 第 11 章待决问题 1–4）。**
+**⑨ 原型已完成（D29）**：`prototype/index.html`（双击打开），屏幕 ↔ PRD 对照见 `prototype/README.md`，截图用 `.venv/bin/python src/shoot_prototype.py` 重跑。原型里所有灰色【待知识库】就是 ⑩ 要补的资料清单。
+
+**下一步：⑩ 知识库原文**，放 `kb/`，来源写 `kb/sources.md`（每块带来源链接和抓取日期）。要解决：PRD 第 11 章待决问题 1–4（型号与价位、刷头更换周期、儿童产品线、智能识别是否已改善），并补齐原型占位：在售型号名称和价格、型号属性表（推荐规则用）、各型号模式和档位、适配刷头、官方更换周期、说明书出处、客服和真伪查询入口。只用 usmile 官网 / 官方说明书 / 权威口腔科普，找不到就写【待核实】，不编造。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 

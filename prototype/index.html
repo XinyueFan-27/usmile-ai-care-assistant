@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 护齿助手原型</title>
+<!-- 个人作品集项目，非 usmile 官方，未上线。所有【待知识库】处在步骤 ⑩ 知识库完成后填入官方资料，不得编造。 -->
+<style>
+:root{
+  --bg:#ededed; --page:#f6f7f8; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e5e6eb;
+  --brand:#07c160; --brand-weak:#e8f8ef; --warn:#d83931; --warn-weak:#fdecea; --amber:#b25e00; --amber-weak:#fff4e5;
+  --ph-bg:#eceef1; --ph-text:#8f959e; --v2:#7a5af5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:15px/1.55 -apple-system,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:24px 16px}
+.side{width:240px;position:sticky;top:24px;font-size:13px;color:var(--sub)}
+.side h1{font-size:15px;color:var(--text);margin-bottom:4px}
+.side ol{margin:12px 0 0 18px}
+.side li{margin:6px 0}
+.side a{color:var(--text)}
+.side a.on{color:var(--brand);font-weight:600}
+.side .meta{margin-top:14px;padding-top:10px;border-top:1px solid #d7d9dd}
+.phone{width:390px;min-height:844px;background:var(--page);border-radius:36px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;position:relative}
+.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font-size:14px;font-weight:600;background:var(--card)}
+.nav{height:44px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--card);border-bottom:1px solid var(--line)}
+.nav .title{font-size:16px;font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav .back{position:absolute;left:8px;width:36px;height:36px;font-size:22px;line-height:36px}
+.capsule{position:absolute;right:8px;width:86px;height:30px;border:1px solid var(--line);border-radius:15px;display:flex;align-items:center;justify-content:space-around;font-size:13px;color:#333}
+.capsule i{width:1px;height:16px;background:var(--line)}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.on{display:flex}
+.body{flex:1;padding:16px}
+.foot{padding:14px 16px 22px;font-size:11px;color:var(--ph-text);text-align:center;line-height:1.6}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px}
+.h2{font-size:20px;font-weight:700;margin-bottom:6px}
+.sub{color:var(--sub);font-size:13px}
+.small{font-size:12px;color:var(--sub)}
+.ph{display:inline;background:var(--ph-bg);color:var(--ph-text);border-radius:4px;padding:1px 5px;font-size:.92em;white-space:normal}
+.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;line-height:18px;vertical-align:1px}
+.tag.assume{background:var(--amber-weak);color:var(--amber)}
+.tag.v2{background:var(--v2);color:#fff}
+.tag.green{background:var(--brand-weak);color:#067d3e}
+.btn{display:block;width:100%;height:46px;border-radius:8px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;text-align:center}
+.btn[disabled]{background:#a9e4c3;cursor:not-allowed}
+.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.btn+.btn{margin-top:10px}
+.row{display:flex;gap:10px}
+.row>.btn{margin-top:0}
+.disclaimer{font-size:12px;color:var(--sub);background:#f2f3f5;border-radius:8px;padding:8px 10px;margin-top:10px}
+.disclaimer b{color:var(--text)}
+/* 首页 */
+.hero{padding:8px 4px 16px}
+.entry{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:12px;width:100%;text-align:left;border:1px solid transparent}
+.entry:hover{border-color:var(--brand)}
+.entry .ic{width:48px;height:48px;border-radius:12px;background:var(--brand-weak);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.entry .t{font-size:17px;font-weight:600}
+.entry .arr{margin-left:auto;color:var(--ph-text);font-size:20px}
+.note{font-size:12px;color:var(--amber);background:var(--amber-weak);border-radius:8px;padding:8px 10px;margin-bottom:12px}
+/* 问卷 */
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 16px}
+.progress>div{height:100%;background:var(--brand);transition:width .2s}
+.q-title{font-size:18px;font-weight:600;margin-bottom:4px}
+.opt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;margin-top:10px}
+.opt .box{width:18px;height:18px;border:1.5px solid #c9cdd4;border-radius:50%;flex:none}
+.opt.multi .box{border-radius:4px}
+.opt.sel{border-color:var(--brand);background:var(--brand-weak)}
+.opt.sel .box{border-color:var(--brand);background:var(--brand);box-shadow:inset 0 0 0 3px #fff}
+.quiz-actions{display:flex;gap:10px;margin-top:20px}
+.quiz-actions .btn{margin:0}
+.quiz-actions .btn.ghost{flex:0 0 96px}
+/* 推荐卡 */
+.pick{border:1.5px solid var(--brand);position:relative}
+.pick .label{position:absolute;top:-1px;left:-1px;background:var(--brand);color:#fff;font-size:12px;padding:2px 10px;border-radius:12px 0 10px 0}
+.model{font-size:18px;font-weight:700;margin:10px 0 4px}
+.kv{display:flex;gap:8px;font-size:13px;margin-top:6px}
+.kv>span:first-child{color:var(--sub);flex:none;min-width:64px;white-space:nowrap}
+.reason{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.reason:first-of-type{border-top:0}
+.reason .n{width:20px;height:20px;border-radius:50%;background:var(--brand-weak);color:#067d3e;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px}
+.caution{background:var(--amber-weak);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:12px}
+.caution b{color:var(--amber)}
+.bleed{background:var(--warn-weak);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;margin-top:10px}
+.empty{text-align:center;padding:36px 16px}
+.empty .big{font-size:40px}
+.demo-toggle{font-size:12px;color:var(--v2);text-decoration:underline;margin:4px 0 12px;display:inline-block}
+.askbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* 首次设置 */
+.field{margin-bottom:14px}
+.field>.lbl{font-size:14px;font-weight:600;margin-bottom:8px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{padding:7px 12px;border:1.5px solid var(--line);border-radius:18px;background:var(--card);font-size:14px}
+.seg button.sel{border-color:var(--brand);background:var(--brand-weak);color:#067d3e}
+input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;width:100%;background:var(--card)}
+.result .item{padding:10px 0;border-top:1px solid var(--line)}
+.result .item:first-of-type{border-top:0}
+.result .k{font-size:13px;color:var(--sub)}
+.remind{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--brand-weak);border-radius:10px;padding:12px}
+.remind .btn{width:auto;height:36px;padding:0 16px;font-size:14px;flex:none}
+.general{background:var(--amber-weak);color:var(--amber);font-size:12px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:6px}
+/* 弹层 */
+.mask{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:5}
+.mask.on{display:flex}
+.sheet{background:var(--card);width:100%;border-radius:14px 14px 0 0;padding:18px 16px 26px}
+.toast{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;font-size:14px;padding:10px 16px;border-radius:8px;max-width:300px;text-align:center;display:none;z-index:6}
+/* 问答 */
+.chat{flex:1;padding:12px 12px 4px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:84%;padding:10px 12px;border-radius:12px;font-size:14px;word-break:break-word}
+.msg.bot{background:var(--card);align-self:flex-start;border-top-left-radius:4px}
+.msg.user{background:#95ec69;align-self:flex-end;border-top-right-radius:4px}
+.msg .src{display:block;font-size:11px;color:#3c6b2a;margin-top:2px}
+.msg .sec{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px}
+.msg .sec:first-child{margin-top:0;padding-top:0;border-top:0}
+.msg .k{color:var(--sub);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:5px 11px;font-size:13px;text-align:left}
+.chip.green{border-color:var(--brand);color:#067d3e}
+.feedback{display:flex;gap:8px;margin-top:8px}
+.feedback button{flex:1;border:1px solid var(--line);border-radius:6px;padding:4px 0;font-size:12px}
+.feedback button.sel{border-color:var(--brand);color:#067d3e;background:var(--brand-weak)}
+.examples{padding:10px 12px;background:var(--page);border-top:1px solid var(--line)}
+.examples .small{margin-bottom:6px}
+.inputbar{display:flex;gap:8px;padding:8px 12px 10px;background:#f7f7f7;border-top:1px solid var(--line)}
+.inputbar input{flex:1;height:38px;border:0;border-radius:6px;padding:0 10px;font:inherit;font-size:14px}
+.inputbar button{background:var(--brand);color:#fff;border-radius:6px;padding:0 14px;font-size:14px}
+/* 边界页 */
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line)}
+.tabs button{flex:1;padding:11px 0;font-size:14px;color:var(--sub);border-bottom:2px solid transparent}
+.tabs button.sel{color:var(--text);font-weight:600;border-color:var(--brand)}
+.bd{display:none}
+.bd.on{display:block}
+.alert{border-radius:12px;padding:18px 16px;margin-bottom:12px}
+.alert.red{background:var(--warn-weak)}
+.alert.red .h{color:var(--warn)}
+.alert .h{font-size:18px;font-weight:700;margin-bottom:6px}
+.quote{background:var(--card);border-left:3px solid #95ec69;border-radius:6px;padding:8px 10px;font-size:14px;margin-bottom:12px}
+.quote .small{display:block}
+.urgent{text-align:center;padding:28px 16px;background:var(--warn);color:#fff;border-radius:12px;margin-bottom:12px}
+.urgent .h{font-size:26px;font-weight:800}
+/* 周报 V2 */
+.v2-banner{background:var(--v2);color:#fff;font-weight:700;text-align:center;padding:8px;font-size:14px;letter-spacing:1px}
+.wire{border:1.5px dashed #b8bcc4;border-radius:10px;padding:14px;margin-bottom:12px;background:repeating-linear-gradient(45deg,#fafafa 0 8px,#f2f3f5 8px 16px)}
+.wire .lbl{font-size:13px;color:var(--sub);margin-bottom:6px}
+.wire .bar{height:12px;background:#d9dce1;border-radius:6px;margin:6px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 .wire{margin-bottom:0}
+.switch{width:44px;height:26px;border-radius:13px;background:#d9dce1;position:relative;flex:none}
+.switch::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff}
+.switch.on{background:var(--brand)}
+.switch.on::after{left:21px}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.setrow:first-of-type{border-top:0}
+@media (max-width:700px){
+  .stage{padding:0;display:block}
+  .side{display:none}
+  .phone{width:100%;min-height:100vh;border-radius:0;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="side">
+    <h1>AI 护齿助手 · 可点击原型</h1>
+    <div>微信小程序样式，6 屏 MVP + 1 屏 V2 低保真。点击手机内按钮按真实流程跳转，也可从这里直接跳。</div>
+    <ol id="sideNav">
+      <li><a href="#home">首页（选阶段）</a></li>
+      <li><a href="#quiz">选购测评（5 题）</a></li>
+      <li><a href="#rec">推荐卡</a></li>
+      <li><a href="#setup">购后首次设置</a></li>
+      <li><a href="#chat">护齿问答（追问 + 出处）</a></li>
+      <li><a href="#boundary">安全边界（就医 / 转客服 / 不评竞品）</a></li>
+      <li><a href="#weekly">每周周报 <span class="tag v2">V2</span></a></li>
+    </ol>
+    <div class="meta">灰色 <span class="ph">【待知识库】</span> = 型号、参数、价格、刷头周期、出处等官方信息，第 ⑩ 步知识库完成后填入，原型不编造。<br><br>「」内为京东评论或买家提问原文。<br><br>个人作品集项目，非 usmile 官方，未上线。</div>
+  </aside>
+
+  <div class="phone" id="phone">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="nav">
+      <button class="back" id="backBtn" aria-label="返回">‹</button>
+      <div class="title" id="navTitle">AI 护齿助手</div>
+      <div class="capsule"><span>•••</span><i></i><span>◎</span></div>
+    </div>
+
+    <!-- 1 首页 -->
+    <section class="screen" id="s-home" data-title="AI 护齿助手">
+      <div class="body">
+        <div class="hero">
+          <div class="h2">你好，想先做什么？</div>
+          <div class="sub">不用登录，直接开始</div>
+        </div>
+        <button class="entry" data-go="quiz">
+          <span class="ic">🛒</span>
+          <span><span class="t">还没买，帮我选</span><br><span class="small">5 道题，约 1 分钟，推荐适合你的型号</span></span>
+          <span class="arr">›</span>
+        </button>
+        <button class="entry" data-go="setup">
+          <span class="ic">🪥</span>
+          <span><span class="t">已经买了，教我用</span><br><span class="small">首次设置建议、使用问答、刷头更换提醒</span></span>
+          <span class="arr">›</span>
+        </button>
+        <div class="note">本助手为个人作品集原型，非 usmile 官方。推荐只在 usmile 产品内进行。</div>
+        <div class="disclaimer"><b>免责声明：</b>本助手提供的信息仅供参考，不能代替牙医诊断。</div>
+      </div>
+      <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+    </section>
+
+    <!-- 2 选购测评 -->
+    <section class="screen" id="s-quiz" data-title="选购测评">
+      <div class="body">
+        <div class="small" id="qStep">第 1 / 5 题</div>
+        <div class="progress"><div id="qBar" style="width:20%"></div></div>
+        <div class="q-title" id="qTitle"></div>
+        <div class="small" id="qHint"></div>
+        <div id="qOpts"></div>
+        <div class="quiz-actions">
+          <button class="btn ghost" id="qPrev">上一题</button>
+          <button class="btn" id="qNext">下一题</button>
+        </div>
+        <div class="small" id="qReq" style="margin-top:8px;color:var(--warn);display:none">预算为必答题，请先选择</div>
+      </div>
+      <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+    </section>
+
+    <!-- 3 推荐卡 -->
+    <section class="screen" id="s-rec" data-title="你的推荐">
+      <div class="body" id="recBody">
+        <button class="demo-toggle" id="emptyToggle">原型演示：切换为“预算内没有合适型号”</button>
+        <div id="recFull">
+          <div class="card pick">
+            <span class="label">主推</span>
+            <div class="model"><span class="ph">【待知识库：型号名称】</span></div>
+            <div class="kv"><span>价格</span><span class="ph">【待知识库】</span></div>
+            <div class="kv"><span>推荐刷头</span><span><span id="headType"></span><span class="ph">【待知识库：官方适配刷头】</span></span></div>
+            <div class="kv"><span>参数出处</span><span class="ph">【待知识库：来源链接 + 更新日期】</span></div>
+          </div>
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:4px">为什么推荐给你</div>
+            <div class="small" style="margin-bottom:6px">每条理由对应你的选项；理由由大模型根据官方参数生成，程序校验数字和出处</div>
+            <div id="reasons"></div>
+          </div>
+          <div class="caution" id="caution"></div>
+          <div class="card">
+            <span class="small">备选</span>
+            <div class="model" style="font-size:16px;margin-top:2px"><span class="ph">【待知识库：型号名称】</span></div>
+            <div class="kv"><span>价格</span><span class="ph">【待知识库】</span></div>
+            <div class="kv"><span>参数出处</span><span class="ph">【待知识库】</span></div>
+          </div>
+          <div class="row" style="margin-bottom:10px">
+            <button class="btn" id="buyBtn">去购买</button>
+            <button class="btn ghost" id="fitBtn">符合我的情况</button>
+          </div>
+          <button class="btn ghost" data-go="setup" data-from-rec="1">已经买了 → 去首次设置</button>
+          <div class="card" style="margin-top:12px">
+            <div style="font-weight:600;margin-bottom:6px">还有疑问？问问助手</div>
+            <div class="askbar">
+              <button class="chip" data-boundary="competitor">「飞利浦跟这个怎么选」<!-- Q040 --></button>
+            </div>
+            <div class="small" style="margin-top:6px">京东买家提问原文</div>
+          </div>
+          <div class="disclaimer"><b>免责声明：</b>本助手提供的信息仅供参考，不能代替牙医诊断。</div>
+        </div>
+        <div id="recEmpty" style="display:none">
+          <div class="card empty">
+            <div class="big">🔍</div>
+            <div style="font-size:17px;font-weight:600;margin:8px 0">这个预算内暂时没有合适的型号</div>
+            <div class="small" style="margin-bottom:16px">不会展示超出预算的型号</div>
+            <button class="btn" data-go="quiz" data-quiz-step="0">调整预算</button>
+          </div>
+        </div>
+      </div>
+      <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+    </section>
+
+    <!-- 4 首次设置 -->
+    <section class="screen" id="s-setup" data-title="首次设置">
+      <div class="body">
+        <div class="card">
+          <div class="field">
+            <div class="lbl">你的型号</div>
+            <div class="seg" data-key="model">
+              <button data-v="rec" id="fromRecOpt" style="display:none">推荐的型号 <span class="ph">【待知识库】</span></button>
+              <button data-v="a">型号 A <span class="ph">【待知识库】</span></button>
+              <button data-v="b">型号 B <span class="ph">【待知识库】</span></button>
+              <button data-v="unsure">我不确定</button>
+            </div>
+          </div>
+          <div class="field">
+            <div class="lbl">1. 是第一次用电动牙刷吗？</div>
+            <div class="seg" data-key="first"><button data-v="yes">是</button><button data-v="no">否</button></div>
+          </div>
+          <div class="field">
+            <div class="lbl">2. 牙龈敏感或容易出血吗？</div>
+            <div class="seg" data-key="sens"><button data-v="yes">是</button><button data-v="no">否</button></div>
+          </div>
+          <div class="field" style="margin-bottom:16px">
+            <div class="lbl">3. 最想改善什么？</div>
+            <div class="seg" data-key="goal"><button data-v="clean">刷不干净</button><button data-v="habit">刷牙习惯不好</button><button data-v="gum">护理牙龈</button></div>
+          </div>
+          <button class="btn" id="genBtn" disabled>生成我的设置</button>
+        </div>
+
+        <div id="setupResult" style="display:none">
+          <div class="card result">
+            <div id="generalTag"></div>
+            <div id="unsureHelp" class="disclaimer" style="display:none;margin:0 0 10px">怎么查看自己的型号：<span class="ph">【待知识库：官方查看型号的方法】</span></div>
+            <div class="item"><div class="k">起始模式</div><div class="ph">【待知识库：说明书中的模式名称】</div></div>
+            <div class="item"><div class="k">起始档位</div><div id="levelText"></div></div>
+            <div class="item"><div class="k">刷头建议</div><div class="ph">【待知识库：官方适配刷头】</div></div>
+            <div class="item"><div class="k">第一周注意事项</div><div class="ph">【待知识库：说明书中的使用注意】</div></div>
+            <div class="item"><div class="k">出处</div><div class="ph">【待知识库：说明书名称 + 链接 + 更新日期】</div></div>
+          </div>
+          <div class="card">
+            <div class="field">
+              <div class="lbl">开始使用日期</div>
+              <input type="date" id="startDate">
+            </div>
+            <div class="kv" style="margin-bottom:12px"><span>下次换刷头</span><span>开始日期 + <span class="ph">【待知识库：官方更换周期】</span></span></div>
+            <div class="remind">
+              <div><div style="font-weight:600;font-size:14px">刷头更换提醒</div><div class="small" id="remindState">默认关闭；不授权也能看到日期</div></div>
+              <button class="btn" id="remindBtn">提醒我</button>
+            </div>
+          </div>
+          <button class="btn ghost" data-go="chat">有问题？去问答</button>
+          <div class="disclaimer"><b>免责声明：</b>本助手提供的信息仅供参考，不能代替牙医诊断。牙龈持续出血或肿胀，请先看牙医。</div>
+        </div>
+        <div style="text-align:center;margin-top:14px"><a href="#weekly" class="small" style="color:var(--v2)">下一版本预告：每周刷牙周报（V2）›</a></div>
+      </div>
+      <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+      <div class="mask" id="subMask">
+        <div class="sheet">
+          <div class="small">原型模拟 · 微信订阅消息授权</div>
+          <div style="font-size:16px;font-weight:600;margin:8px 0 4px">“AI 护齿助手”申请发送一次消息</div>
+          <div class="sub" style="margin-bottom:16px">刷头到期时提醒你一次，可一键跳转商城购买对应刷头</div>
+          <div class="row"><button class="btn ghost" id="subNo">拒绝</button><button class="btn" id="subYes">允许</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 问答 -->
+    <section class="screen" id="s-chat" data-title="护齿问答">
+      <div class="chat" id="chatBox"></div>
+      <div class="examples">
+        <div class="small">试试真实买家提问（京东原文）</div>
+        <div class="chips" id="exampleChips">
+          <button class="chip" data-kind="followup">「续航多久呀」<!-- Q052 --></button>
+          <button class="chip" data-kind="answer">「怎么连接手机？」<!-- Q020 --></button>
+          <button class="chip" data-kind="head">「刷头用多久会炸毛？」<!-- Q035 --></button>
+          <button class="chip" data-kind="ortho">「正畸带着皮套，能用吗？」<!-- Q089 --></button>
+          <button class="chip" data-kind="nodata">「在海外的留子，连的上APP吗？」<!-- Q012 --></button>
+          <button class="chip" data-kind="subjective">「好用吗」<!-- Q002 --></button>
+          <button class="chip" data-kind="b-medical">「用了几次都牙龈出血了」<!-- R146 --></button>
+          <button class="chip" data-kind="b-service">「冲不起电了，是更换还是维修，使用期限是多久？」<!-- Q060 --></button>
+          <button class="chip" data-kind="b-fake">「请问这个是正品吗？」<!-- Q100 --></button>
+        </div>
+      </div>
+      <div class="inputbar"><input id="chatInput" placeholder="输入你的问题"><button id="sendBtn">发送</button></div>
+      <div class="foot" style="padding-top:6px;padding-bottom:12px">个人作品集项目，非 usmile 官方，未上线</div>
+    </section>
+
+    <!-- 6 安全边界 -->
+    <section class="screen" id="s-boundary" data-title="这个问题需要转交">
+      <div class="tabs">
+        <button data-tab="medical">就医提示</button>
+        <button data-tab="service">转官方客服</button>
+        <button data-tab="competitor">不评价竞品</button>
+      </div>
+      <div class="body">
+        <div class="bd" id="bd-medical">
+          <div class="quote" id="medQuote">「我用了两个月后牙龈肿胀」<!-- R081 --><span class="small">京东评论原文（示例输入）</span></div>
+          <div class="alert red">
+            <div class="h">建议尽快看牙医</div>
+            <div>出血、肿胀等症状需要医生检查。助手不做诊断，也不推荐任何药物。</div>
+          </div>
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:6px">你可以</div>
+            <div class="small">· 尽快到正规口腔医疗机构就诊<br>· 产品使用问题，可在就诊后回到问答页继续问</div>
+          </div>
+          <button class="demo-toggle" id="urgentToggle">原型演示：查看急症样式（大量出血不止、外伤、肿胀发热时触发）</button>
+          <div id="urgentBox" style="display:none">
+            <div class="urgent"><div class="h">请尽快就医</div><div style="margin-top:6px">急症时只显示这一条提示，不给任何刷牙或产品建议</div></div>
+          </div>
+          <div class="disclaimer"><b>免责声明：</b>本助手提供的信息仅供参考，不能代替牙医诊断。</div>
+        </div>
+        <div class="bd" id="bd-service">
+          <div class="quote" id="svcQuote"></div>
+          <div class="alert" style="background:var(--card)">
+            <div class="h" id="svcTitle">这个问题请联系官方客服</div>
+            <div class="sub" id="svcText">售后、退换、价保、物流问题助手不处理，也不承诺任何保修或退换结果。</div>
+          </div>
+          <button class="btn" id="svcBtn">联系官方客服</button>
+          <div class="small" style="text-align:center;margin-top:6px">入口：<span class="ph" id="svcPh">【待知识库：官方客服入口】</span></div>
+          <div class="disclaimer"><b>说明：</b>助手只回答使用和选购问题。</div>
+        </div>
+        <div class="bd" id="bd-competitor">
+          <div class="quote">「飞利浦跟这个怎么选」<!-- Q040 --><span class="small">京东买家提问原文（示例输入）</span></div>
+          <div class="alert" style="background:var(--card)">
+            <div class="h">我不评价其他品牌</div>
+            <div class="sub">告诉我你最在意什么，我按你的需求推荐合适的 usmile 型号。</div>
+          </div>
+          <div class="chips" style="margin-bottom:14px">
+            <button class="chip green" data-go="quiz">续航长</button>
+            <button class="chip green" data-go="quiz">安静或震感小</button>
+            <button class="chip green" data-go="quiz">护理牙龈</button>
+          </div>
+          <button class="btn" data-go="quiz">做 1 分钟选购测评</button>
+        </div>
+      </div>
+      <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+    </section>
+
+    <!-- 7 周报 V2 -->
+    <section class="screen" id="s-weekly" data-title="每周刷牙周报">
+      <div class="v2-banner">V2 · 低保真 · 不在 MVP 范围</div>
+      <div class="body">
+        <div class="small" style="margin-bottom:10px">示意结构，不含任何真实或编造数据；依赖刷牙数据同步（只有联网款有数据）</div>
+        <div class="grid2" style="margin-bottom:12px">
+          <div class="wire"><div class="lbl">本周刷牙次数</div><div class="bar" style="width:60%"></div></div>
+          <div class="wire"><div class="lbl">平均时长</div><div class="bar" style="width:45%"></div></div>
+        </div>
+        <div class="wire"><div class="lbl">覆盖情况（分区示意）</div><div class="bar"></div><div class="bar" style="width:80%"></div><div class="bar" style="width:65%"></div></div>
+        <div class="wire"><div class="lbl">下周一个小建议</div><div class="bar" style="width:90%"></div><div class="bar" style="width:55%"></div></div>
+        <div class="card">
+          <div style="font-weight:600;margin-bottom:4px">订阅设置</div>
+          <div class="setrow"><span>接收周报</span><span class="switch" id="wkSwitch"></span></div>
+          <div class="setrow"><span>频率</span><span class="seg" data-key="freq"><button>每周</button><button>每两周</button></span></div>
+          <div class="setrow"><span>一键退订</span><span class="small">随时可关</span></div>
+          <div class="small" style="margin-top:6px">默认关闭，由用户主动开启。上线前先人工给 5–10 位用户发 2 周，看打开、反馈和退订情况。</div>
+        </div>
+      </div>
+      <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(s,el){return (el||document).querySelector(s)};
+  var $$ = function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
+  var PH = function(t){return '<span class="ph">【待知识库' + (t ? '：' + t : '') + '】</span>'};
+  var DISC = '<div class="sec small">本助手提供的信息仅供参考，不能代替牙医诊断。</div>';
+
+  function toast(t){var el=$('#toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){el.style.display='none'},1800)}
+
+  // ---------- 路由 ----------
+  var history_ = [];
+  function show(route){
+    var parts = route.split('/'), name = parts[0] || 'home', arg = parts[1] || '';
+    if(!$('#s-'+name)) name='home';
+    $$('.screen').forEach(function(s){s.classList.remove('on')});
+    var scr = $('#s-'+name); scr.classList.add('on');
+    $('#navTitle').textContent = scr.dataset.title;
+    $('#backBtn').style.visibility = name==='home' ? 'hidden' : 'visible';
+    $$('#sideNav a').forEach(function(a){a.classList.toggle('on', a.getAttribute('href')==='#'+name)});
+    if(name==='quiz') renderQuiz();
+    if(name==='rec') renderRec(arg);
+    if(name==='setup') enterSetup(arg);
+    if(name==='chat') enterChat(arg);
+    if(name==='boundary') setTab(arg || 'medical');
+    window.scrollTo(0,0);
+  }
+  function go(route){ if(location.hash.slice(1)===route) show(route); else location.hash = route; }
+  window.addEventListener('hashchange', function(){ history_.push(location.hash); show(location.hash.slice(1)); });
+  $('#backBtn').onclick = function(){ history.length>1 ? history.back() : go('home'); };
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-go]'); if(!t) return;
+    if(t.dataset.quizStep) { qi = +t.dataset.quizStep; }
+    if(t.dataset.go==='quiz' && !t.dataset.quizStep && t.closest('#s-boundary,#s-home')) { qi = 0; }
+    if(t.dataset.fromRec) setupFromRec = true;
+    go(t.dataset.go);
+  });
+
+  // ---------- 选购测评（题目与选项以 PRD 6.2 为准） ----------
+  var Q = [
+    {t:'你的预算区间是？', hint:'单选 · 必答 · 价位段按 usmile 官方价格划分', multi:false, req:true,
+     opts:['价位段 1 '+PH('官方价格'), '价位段 2 '+PH('官方价格'), '价位段 3 '+PH('官方价格')]},
+    {t:'你的牙齿情况？', hint:'多选', multi:true,
+     opts:['牙龈敏感或容易出血','正在正畸','有补牙或牙龈萎缩','有牙渍或烟渍 <span class="tag assume">业务假设</span>','没有特别问题'], none:4},
+    {t:'最想解决的问题？', hint:'单选', multi:false,
+     opts:['刷不干净','刷牙习惯不好','牙黄 <span class="tag assume">业务假设</span>','护理牙龈']},
+    {t:'想要的功能？', hint:'多选', multi:true,
+     opts:['App 或智能识别','续航长','安静或震感小','方便出差携带']},
+    {t:'是第一次用电动牙刷吗？', hint:'单选 · 影响档位建议', multi:false, opts:['是','否']}
+  ];
+  var ans = Q.map(function(){return []}); var qi = 0;
+  function plain(html){var d=document.createElement('div');d.innerHTML=html;$$('.tag',d).forEach(function(x){x.remove()});return d.textContent.trim()}
+  function renderQuiz(){
+    var q = Q[qi];
+    $('#qStep').textContent = '第 '+(qi+1)+' / 5 题';
+    $('#qBar').style.width = ((qi+1)*20)+'%';
+    $('#qTitle').textContent = q.t; $('#qHint').textContent = q.hint;
+    $('#qOpts').innerHTML = q.opts.map(function(o,i){
+      return '<button class="opt'+(q.multi?' multi':'')+(ans[qi].indexOf(i)>=0?' sel':'')+'" data-i="'+i+'"><span class="box"></span><span>'+o+'</span></button>';
+    }).join('');
+    $('#qPrev').style.visibility = qi===0 ? 'hidden':'visible';
+    $('#qNext').textContent = qi===4 ? '看推荐' : '下一题';
+    $('#qNext').disabled = !!(q.req && !ans[qi].length);
+    $('#qReq').style.display = (q.req && !ans[qi].length) ? 'block':'none';
+  }
+  $('#qOpts').onclick = function(e){
+    var b = e.target.closest('.opt'); if(!b) return;
+    var i = +b.dataset.i, q = Q[qi], a = ans[qi];
+    if(!q.multi) ans[qi] = [i];
+    else {
+      var k = a.indexOf(i);
+      if(k>=0) a.splice(k,1);
+      else { if(q.none!==undefined){ if(i===q.none) a.length=0; else { var n=a.indexOf(q.none); if(n>=0) a.splice(n,1);} } a.push(i); }
+    }
+    renderQuiz();
+  };
+  $('#qPrev').onclick = function(){ if(qi>0){qi--;renderQuiz();} };
+  $('#qNext').onclick = function(){ if(qi<4){qi++;renderQuiz();} else { recEmpty=false; go('rec'); } };
+
+  // ---------- 推荐卡 ----------
+  var recEmpty = false;
+  function renderRec(arg){
+    if(arg==='empty') recEmpty = true;
+    if(arg==='sample' && !ans[0].length){ ans=[[0],[0],[3],[1],[0]]; }
+    $('#recFull').style.display = recEmpty?'none':'block';
+    $('#recEmpty').style.display = recEmpty?'block':'none';
+    $('#emptyToggle').textContent = recEmpty ? '原型演示：切换回正常推荐' : '原型演示：切换为“预算内没有合适型号”';
+    // 理由：每条对应用户在第 2–4 题的选项（规则选型号，大模型只解释）
+    var picks = [];
+    [1,2,3].forEach(function(k){ ans[k].forEach(function(i){ if(!(k===1 && i===4)) picks.push(plain(Q[k].opts[i])); }); });
+    if(!picks.length) picks.push(ans[4][0]===0 ? '第一次用电动牙刷' : '你的预算');
+    $('#reasons').innerHTML = picks.slice(0,3).map(function(p,i){
+      return '<div class="reason"><span class="n">'+(i+1)+'</span><div><div>对应你选的“'+p+'”</div><div class="small">依据：'+PH('官方参数')+'　出处：'+PH()+'</div></div></div>';
+    }).join('');
+    var sens = ans[1].indexOf(0)>=0, newbie = ans[4][0]===0;
+    $('#headType').textContent = sens ? '软毛类 · ' : '';
+    var c = '<b>使用注意</b><br>';
+    if(sens || newbie) c += '· 从最低档开始，适应后再调高<br>';
+    if(ans[1].indexOf(1)>=0) c += '· 正畸期间的使用注意 '+PH('权威科普')+'；具体情况请咨询正畸医生<br>';
+    c += '· 其他注意事项 '+PH('官方说明书');
+    if(sens) c += '<div class="bleed">持续出血请先看牙医</div>';
+    $('#caution').innerHTML = c;
+  }
+  $('#emptyToggle').onclick = function(){ recEmpty=!recEmpty; renderRec(''); };
+  $('#buyBtn').onclick = function(){ toast('原型：跳转官方商城 · 链接【待知识库】'); };
+  $('#fitBtn').onclick = function(){ this.textContent='已反馈，谢谢'; this.classList.add('sel'); };
+
+  // ---------- 首次设置 ----------
+  var setupFromRec = false, st = {};
+  function enterSetup(arg){
+    $('#fromRecOpt').style.display = setupFromRec ? 'inline-block' : 'none';
+    if(setupFromRec && !st.model){ st.model='rec'; if(ans[4].length) st.first = ans[4][0]===0?'yes':'no'; if(ans[1].length) st.sens = ans[1].indexOf(0)>=0?'yes':'no'; }
+    if(arg==='result'){ st={model:'a',first:'yes',sens:'yes',goal:'gum'}; }
+    if(arg==='unsure'){ st={model:'unsure',first:'yes',sens:'no',goal:'clean'}; }
+    syncSeg(); if(arg==='result'||arg==='unsure') genSetup();
+  }
+  function syncSeg(){
+    $$('#s-setup .seg').forEach(function(seg){ $$('button',seg).forEach(function(b){ b.classList.toggle('sel', st[seg.dataset.key]===b.dataset.v); }); });
+    $('#genBtn').disabled = !(st.model && st.first && st.sens && st.goal);
+  }
+  $$('#s-setup .seg').forEach(function(seg){ seg.onclick=function(e){ var b=e.target.closest('button'); if(!b) return; st[seg.dataset.key]=b.dataset.v; syncSeg(); }; });
+  function genSetup(){
+    var unsure = st.model==='unsure';
+    $('#setupResult').style.display='block';
+    $('#generalTag').innerHTML = unsure ? '<span class="general">通用建议 · 确认型号后给出针对性设置</span>' : '<span class="tag green">按你的型号和回答生成</span>';
+    $('#unsureHelp').style.display = unsure ? 'block':'none';
+    var low = st.first==='yes' || st.sens==='yes';
+    $('#levelText').innerHTML = low ? (unsure ? '<b>从最低档开始</b>（通用建议；确认型号后给出具体档位）' : '<b>该型号最低档</b>（第一次用或牙龈敏感，先从最低档开始）<br>'+PH('档位名称 + 说明书出处')) : PH('说明书中的推荐档位');
+    if(!$('#startDate').value){ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $('#startDate').value = d.toISOString().slice(0,10); }
+  }
+  $('#genBtn').onclick = function(){ genSetup(); setTimeout(function(){ $('#setupResult').scrollIntoView({behavior:'smooth'}); },50); };
+  $('#remindBtn').onclick = function(){ $('#subMask').classList.add('on'); };
+  $('#subNo').onclick = function(){ $('#subMask').classList.remove('on'); $('#remindState').textContent='未授权，仍可在这里看到更换日期'; };
+  $('#subYes').onclick = function(){ $('#subMask').classList.remove('on'); $('#remindState').textContent='已订阅（原型模拟），到期提醒一次，可随时取消'; $('#remindBtn').textContent='取消提醒'; };
+
+  // ---------- 问答 ----------
+  var chatInited = false;
+  function addMsg(cls, html){ var m=document.createElement('div'); m.className='msg '+cls; m.innerHTML=html; $('#chatBox').appendChild(m); m.scrollIntoView({block:'end'}); return m; }
+  function userSay(chip){ var src = /R\d{3}/.test(chip.innerHTML) ? '京东评论原文' : '京东买家提问原文'; addMsg('user', chip.textContent.trim()+'<span class="src">'+src+'</span>'); }
+  function answerCard(extra){
+    return '<div class="sec"><span class="k">结论</span><br>'+PH('基于官方资料的回答')+'</div>'
+      + (extra||'')
+      + '<div class="sec"><span class="k">出处</span><br>'+PH('来源名称 + 链接 + 更新日期')+'</div>'
+      + DISC
+      + '<div class="feedback"><button>已解决</button><button>没解决</button></div>';
+  }
+  function enterChat(arg){
+    if(!chatInited){ chatInited=true; addMsg('bot','你好，我可以回答使用方法、刷头、适用人群等问题，回答会标注出处。<br><span class="small">问题不清楚时我会先问你一句。</span>'); }
+    if(arg==='demo' && $$('#chatBox .msg').length<3){ var c=$('#exampleChips [data-kind=followup]'); c.click(); setTimeout(function(){ var m=$('#chatBox [data-model]'); if(m) m.click(); },10); }
+  }
+  $('#chatBox').addEventListener('click', function(e){
+    var fb = e.target.closest('.feedback button'); if(fb){ $$('button',fb.parentNode).forEach(function(b){b.classList.remove('sel')}); fb.classList.add('sel'); return; }
+    var m = e.target.closest('[data-model]'); if(m && !m.disabled){
+      $$('[data-model]', m.parentNode).forEach(function(b){b.disabled=true}); m.classList.add('green');
+      addMsg('user', m.innerHTML);
+      if(m.dataset.model==='unsure') addMsg('bot', '<span class="general">通用建议</span>'+answerCard('<div class="sec"><span class="k">怎么查看型号</span><br>'+PH('官方查看型号的方法')+'</div>'));
+      else addMsg('bot', answerCard());
+    }
+  });
+  $('#exampleChips').onclick = function(e){
+    var c = e.target.closest('.chip'); if(!c) return; var k = c.dataset.kind;
+    userSay(c);
+    if(k==='followup') addMsg('bot','你用的是哪一款？续航因型号不同而不同。<div class="chips"><button class="chip" data-model="a">型号 A '+PH()+'</button><button class="chip" data-model="b">型号 B '+PH()+'</button><button class="chip" data-model="unsure">我不确定</button></div>');
+    else if(k==='answer') addMsg('bot', answerCard('<div class="sec"><span class="k">操作步骤</span><br>'+PH('说明书步骤')+'</div>'));
+    else if(k==='head') addMsg('bot', answerCard('<div class="sec"><span class="k">官方更换周期</span><br>'+PH('官方更换周期')+'<br><a href="#setup" style="color:var(--brand)">开启刷头更换提醒 ›</a></div>'));
+    else if(k==='ortho') addMsg('bot', answerCard('<div class="sec"><span class="k">使用注意</span><br>'+PH('权威口腔科普')+'<br><b>具体情况请咨询正畸医生。</b></div>'));
+    else if(k==='nodata') addMsg('bot','没有找到可靠资料，不能给你确定的答案。<div class="sec">可以问官方客服：'+PH('官方客服入口')+'</div>'+DISC);
+    else if(k==='subjective') addMsg('bot','体验因人而异，我不下“好用 / 不好用”的结论。<div class="sec">可以告诉我你最在意什么（如续航、噪音、牙龈护理），或者<a href="#quiz" style="color:var(--brand)">做 1 分钟选购测评 ›</a></div>');
+    else if(k.indexOf('b-')===0){
+      var type = k.slice(2);
+      addMsg('bot','这个问题我不能直接回答，正在为你转到对应页面…');
+      boundaryInput = {type:type, html:c.innerHTML};
+      setTimeout(function(){ go('boundary/'+(type==='fake'?'fake':type)); }, 600);
+    }
+  };
+  $('#sendBtn').onclick = function(){ var v=$('#chatInput').value.trim(); if(!v) return; addMsg('user', v.replace(/[<>&]/g,'')); $('#chatInput').value=''; addMsg('bot','原型只演示下方的真实提问示例，请点一个试试。'); };
+
+  // ---------- 安全边界 ----------
+  var boundaryInput = null;
+  function setTab(t){
+    var tab = (t==='fake') ? 'service' : t;
+    if(['medical','service','competitor'].indexOf(tab)<0) tab='medical';
+    $$('.tabs button').forEach(function(b){b.classList.toggle('sel', b.dataset.tab===tab)});
+    $$('.bd').forEach(function(b){b.classList.toggle('on', b.id==='bd-'+tab)});
+    if(tab==='medical' && boundaryInput && boundaryInput.type==='medical') $('#medQuote').innerHTML = boundaryInput.html + '<span class="small">京东评论原文（示例输入）</span>';
+    var fake = t==='fake';
+    var svcChip = $('#exampleChips [data-kind='+(fake?'b-fake':'b-service')+']');
+    $('#svcQuote').innerHTML = svcChip.innerHTML + '<span class="small">京东买家提问原文（示例输入）</span>';
+    $('#svcTitle').textContent = fake ? '助手不判断真伪' : '这个问题请联系官方客服';
+    $('#svcText').textContent = fake ? '请通过官方渠道查询，助手不对真伪下结论。' : '售后、退换、价保、物流问题助手不处理，也不承诺任何保修或退换结果。';
+    $('#svcBtn').textContent = fake ? '去官方渠道查询' : '联系官方客服';
+    $('#svcPh').textContent = fake ? '【待知识库：官方真伪查询渠道】' : '【待知识库：官方客服入口】';
+    if(t==='urgent'){ $('#urgentBox').style.display='block'; }
+  }
+  $$('.tabs button').forEach(function(b){ b.onclick=function(){ go('boundary/'+b.dataset.tab); }; });
+  $('#urgentToggle').onclick = function(){ var u=$('#urgentBox'); u.style.display = u.style.display==='none'?'block':'none'; };
+  $('#svcBtn').onclick = function(){ toast('原型：跳转官方入口 · 【待知识库】'); };
+  $('#s-boundary').addEventListener('click', function(e){ var c=e.target.closest('[data-boundary]'); if(c) go('boundary/'+c.dataset.boundary); });
+  $('#s-rec').addEventListener('click', function(e){ var c=e.target.closest('[data-boundary]'); if(c) go('boundary/'+c.dataset.boundary); });
+
+  // ---------- 周报 V2 ----------
+  $('#wkSwitch').onclick = function(){ this.classList.toggle('on'); };
+
+  show(location.hash.slice(1) || 'home');
+})();
+</script>
+</body>
+</html>
