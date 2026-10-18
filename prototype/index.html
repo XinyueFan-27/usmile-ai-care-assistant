@@ -7,8 +7,8 @@
 <!-- 个人作品集项目，非 usmile 官方，未上线。所有【待知识库】处在步骤 ⑩ 知识库完成后填入官方资料，不得编造。 -->
 <style>
 :root{
-  --bg:#ededed; --page:#f6f7f8; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e5e6eb;
-  --brand:#07c160; --brand-weak:#e8f8ef; --warn:#d83931; --warn-weak:#fdecea; --amber:#b25e00; --amber-weak:#fff4e5;
+  --bg:#e9ebef; --page:#f3f3f5; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e5e6eb;
+  --brand:#007cfa; --brand-weak:#e6f2ff; --brand-text:#0062c4; --sky:#aedbfc; --warn:#d83931; --warn-weak:#fdecea; --amber:#b25e00; --amber-weak:#fff4e5;
   --ph-bg:#eceef1; --ph-text:#8f959e; --v2:#7a5af5;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -33,7 +33,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .screen.on{display:flex}
 .body{flex:1;padding:16px}
 .foot{padding:14px 16px 22px;font-size:11px;color:var(--ph-text);text-align:center;line-height:1.6}
-.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px}
+.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px}
 .h2{font-size:20px;font-weight:700;margin-bottom:6px}
 .sub{color:var(--sub);font-size:13px}
 .small{font-size:12px;color:var(--sub)}
@@ -41,20 +41,21 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;line-height:18px;vertical-align:1px}
 .tag.assume{background:var(--amber-weak);color:var(--amber)}
 .tag.v2{background:var(--v2);color:#fff}
-.tag.green{background:var(--brand-weak);color:#067d3e}
-.btn{display:block;width:100%;height:46px;border-radius:8px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;text-align:center}
-.btn[disabled]{background:#a9e4c3;cursor:not-allowed}
+.tag.hl{background:var(--brand-weak);color:var(--brand-text)}
+.btn{display:block;width:100%;height:46px;border-radius:23px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;text-align:center}
+.btn[disabled]{background:#9ccbfd;cursor:not-allowed}
 .btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}
 .btn+.btn{margin-top:10px}
 .row{display:flex;gap:10px}
 .row>.btn{margin-top:0}
 .disclaimer{font-size:12px;color:var(--sub);background:#f2f3f5;border-radius:8px;padding:8px 10px;margin-top:10px}
 .disclaimer b{color:var(--text)}
-/* 首页 */
+/* 首页：顶部浅蓝渐变，参照 usmile App“我的”页的配色 */
+#s-home{background:linear-gradient(180deg,var(--sky) 0,#dae9fc 220px,var(--page) 460px)}
 .hero{padding:8px 4px 16px}
-.entry{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:12px;width:100%;text-align:left;border:1px solid transparent}
+.entry{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:18px;padding:18px 16px;margin-bottom:12px;width:100%;text-align:left;border:1px solid transparent}
 .entry:hover{border-color:var(--brand)}
-.entry .ic{width:48px;height:48px;border-radius:12px;background:var(--brand-weak);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.entry .ic{width:48px;height:48px;border-radius:50%;background:var(--brand-weak);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
 .entry .t{font-size:17px;font-weight:600}
 .entry .arr{margin-left:auto;color:var(--ph-text);font-size:20px}
 .note{font-size:12px;color:var(--amber);background:var(--amber-weak);border-radius:8px;padding:8px 10px;margin-bottom:12px}
@@ -78,7 +79,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .kv>span:first-child{color:var(--sub);flex:none;min-width:64px;white-space:nowrap}
 .reason{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .reason:first-of-type{border-top:0}
-.reason .n{width:20px;height:20px;border-radius:50%;background:var(--brand-weak);color:#067d3e;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px}
+.reason .n{width:20px;height:20px;border-radius:50%;background:var(--brand-weak);color:var(--brand-text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px}
 .caution{background:var(--amber-weak);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:12px}
 .caution b{color:var(--amber)}
 .bleed{background:var(--warn-weak);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;margin-top:10px}
@@ -91,7 +92,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .field>.lbl{font-size:14px;font-weight:600;margin-bottom:8px}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg button{padding:7px 12px;border:1.5px solid var(--line);border-radius:18px;background:var(--card);font-size:14px}
-.seg button.sel{border-color:var(--brand);background:var(--brand-weak);color:#067d3e}
+.seg button.sel{border-color:var(--brand);background:var(--brand-weak);color:var(--brand-text)}
 input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;width:100%;background:var(--card)}
 .result .item{padding:10px 0;border-top:1px solid var(--line)}
 .result .item:first-of-type{border-top:0}
@@ -108,17 +109,17 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
 .chat{flex:1;padding:12px 12px 4px;display:flex;flex-direction:column;gap:10px}
 .msg{max-width:84%;padding:10px 12px;border-radius:12px;font-size:14px;word-break:break-word}
 .msg.bot{background:var(--card);align-self:flex-start;border-top-left-radius:4px}
-.msg.user{background:#95ec69;align-self:flex-end;border-top-right-radius:4px}
-.msg .src{display:block;font-size:11px;color:#3c6b2a;margin-top:2px}
+.msg.user{background:#d3e8ff;align-self:flex-end;border-top-right-radius:4px}
+.msg .src{display:block;font-size:11px;color:#3d6a9e;margin-top:2px}
 .msg .sec{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px}
 .msg .sec:first-child{margin-top:0;padding-top:0;border-top:0}
 .msg .k{color:var(--sub);font-size:12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:5px 11px;font-size:13px;text-align:left}
-.chip.green{border-color:var(--brand);color:#067d3e}
+.chip.hl{border-color:var(--brand);color:var(--brand-text)}
 .feedback{display:flex;gap:8px;margin-top:8px}
 .feedback button{flex:1;border:1px solid var(--line);border-radius:6px;padding:4px 0;font-size:12px}
-.feedback button.sel{border-color:var(--brand);color:#067d3e;background:var(--brand-weak)}
+.feedback button.sel{border-color:var(--brand);color:var(--brand-text);background:var(--brand-weak)}
 .examples{padding:10px 12px;background:var(--page);border-top:1px solid var(--line)}
 .examples .small{margin-bottom:6px}
 .inputbar{display:flex;gap:8px;padding:8px 12px 10px;background:#f7f7f7;border-top:1px solid var(--line)}
@@ -134,7 +135,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
 .alert.red{background:var(--warn-weak)}
 .alert.red .h{color:var(--warn)}
 .alert .h{font-size:18px;font-weight:700;margin-bottom:6px}
-.quote{background:var(--card);border-left:3px solid #95ec69;border-radius:6px;padding:8px 10px;font-size:14px;margin-bottom:12px}
+.quote{background:var(--card);border-left:3px solid var(--brand);border-radius:6px;padding:8px 10px;font-size:14px;margin-bottom:12px}
 .quote .small{display:block}
 .urgent{text-align:center;padding:28px 16px;background:var(--warn);color:#fff;border-radius:12px;margin-bottom:12px}
 .urgent .h{font-size:26px;font-weight:800}
@@ -400,9 +401,9 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
             <div class="sub">告诉我你最在意什么，我按你的需求推荐合适的 usmile 型号。</div>
           </div>
           <div class="chips" style="margin-bottom:14px">
-            <button class="chip green" data-go="quiz">续航长</button>
-            <button class="chip green" data-go="quiz">安静或震感小</button>
-            <button class="chip green" data-go="quiz">护理牙龈</button>
+            <button class="chip hl" data-go="quiz">续航长</button>
+            <button class="chip hl" data-go="quiz">安静或震感小</button>
+            <button class="chip hl" data-go="quiz">护理牙龈</button>
           </div>
           <button class="btn" data-go="quiz">做 1 分钟选购测评</button>
         </div>
@@ -559,7 +560,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
   function genSetup(){
     var unsure = st.model==='unsure';
     $('#setupResult').style.display='block';
-    $('#generalTag').innerHTML = unsure ? '<span class="general">通用建议 · 确认型号后给出针对性设置</span>' : '<span class="tag green">按你的型号和回答生成</span>';
+    $('#generalTag').innerHTML = unsure ? '<span class="general">通用建议 · 确认型号后给出针对性设置</span>' : '<span class="tag hl">按你的型号和回答生成</span>';
     $('#unsureHelp').style.display = unsure ? 'block':'none';
     var low = st.first==='yes' || st.sens==='yes';
     $('#levelText').innerHTML = low ? (unsure ? '<b>从最低档开始</b>（通用建议；确认型号后给出具体档位）' : '<b>该型号最低档</b>（第一次用或牙龈敏感，先从最低档开始）<br>'+PH('档位名称 + 说明书出处')) : PH('说明书中的推荐档位');
@@ -588,7 +589,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
   $('#chatBox').addEventListener('click', function(e){
     var fb = e.target.closest('.feedback button'); if(fb){ $$('button',fb.parentNode).forEach(function(b){b.classList.remove('sel')}); fb.classList.add('sel'); return; }
     var m = e.target.closest('[data-model]'); if(m && !m.disabled){
-      $$('[data-model]', m.parentNode).forEach(function(b){b.disabled=true}); m.classList.add('green');
+      $$('[data-model]', m.parentNode).forEach(function(b){b.disabled=true}); m.classList.add('hl');
       addMsg('user', m.innerHTML);
       if(m.dataset.model==='unsure') addMsg('bot', '<span class="general">通用建议</span>'+answerCard('<div class="sec"><span class="k">怎么查看型号</span><br>'+PH('官方查看型号的方法')+'</div>'));
       else addMsg('bot', answerCard());
