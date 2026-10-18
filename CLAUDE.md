@@ -154,7 +154,7 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D38。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D39。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
 **PRD 已按小程序与笑容加 App 分工修改（D32–D36，10/18）**：购后按型号分流（智能款 → App；基础款 → 首次设置和刷头提醒），周报已删除，评测对照扩到 25 题（E-25 用模拟设备数据，须标注）。PRD 第十章已嵌入定稿原型截图（12 张）。
 
@@ -162,9 +162,9 @@ app.py             Streamlit Demo
 
 **⑨ 原型已完成（D29）**：`prototype/index.html`（双击打开），屏幕 ↔ PRD 对照见 `prototype/README.md`，截图用 `.venv/bin/python src/shoot_prototype.py` 重跑。原型里所有灰色【待知识库】就是 ⑩ 要补的资料清单。
 
-**⑩ 知识库已完成（D37、D38，10/18）**：`kb/` 12 个主题文件、85 个知识块，每块带来源编号、来源级别（1 品牌官方 / 2 权威科普）、抓取日期，格式见 `kb/README.md`；来源清单 `kb/sources.md`；型号属性表 `kb/model_attributes.csv`（17 个型号，每字段带出处列，`src/kb_build_attributes.py` 生成）。长篇原文和详情图存 `data/processed/kb_raw/`（不提交）。摘录核对用 `.venv/bin/python src/kb_check_quotes.py`。结论：刷头更换周期 3 个月；有儿童线（Q30 / Q20Pro / Q20 等）；Y30 有官方证据支持笑容加 App（官网下载页列表未更新）。PRD 和原型可回填的内容见 `docs/kb_backfill.md`（由 PRD / 原型会话负责改）。**待 Melody 拍板 4 件事**（见该文件第一节）：Y30 是否改走智能款、测评价位段怎么切、儿童是否进测评、“从最低档开始”改为官方起始模式。
+**⑩ 知识库已完成（D37、D38，10/18）**：`kb/` 12 个主题文件、85 个知识块，每块带来源编号、来源级别（1 品牌官方 / 2 权威科普）、抓取日期，格式见 `kb/README.md`；来源清单 `kb/sources.md`；型号属性表 `kb/model_attributes.csv`（17 个型号，每字段带出处列，`src/kb_build_attributes.py` 生成）。长篇原文和详情图存 `data/processed/kb_raw/`（不提交）。摘录核对用 `.venv/bin/python src/kb_check_quotes.py`。结论：刷头更换周期 3 个月；有儿童线（Q30 / Q20Pro / Q20 等）；Y30 有官方证据支持笑容加 App（官网下载页列表未更新）。PRD 和原型可回填的内容见 `docs/kb_backfill.md`（由 PRD / 原型会话负责改）。**D39 已定**：Y30 走智能款；测评价位段 200 以下 / 200–400 / 400–800 / 800 以上；儿童不进测评、只在问答引导；“最低档”改为官方起始模式（P10 → 呵护；Y30 首次 → 早晚双效，敏感 → 柔感呵护）。
 
-**下一步：⑪ Demo v1**（`app.py` + `src/rag.py`）。RAG 只检索 `kb/`：按 `### KB-` 标题切块，块内“适用 / 来源 / 来源级别 / 抓取日期”作为元数据，回答引用块编号并显示来源名称和链接（`kb/sources.md`）；推荐规则读 `kb/model_attributes.csv`，值为【待核实】或“未提及”的字段不参与打分；价位段按 Melody 拍板后的切法。
+**下一步：⑪ Demo v1**（`app.py` + `src/rag.py`）。RAG 只检索 `kb/`：按 `### KB-` 标题切块，块内“适用 / 来源 / 来源级别 / 抓取日期”作为元数据，回答引用块编号并显示来源名称和链接（`kb/sources.md`）；推荐规则读 `kb/model_attributes.csv`，值为【待核实】或“未提及”的字段不参与打分；价位段按 D39 的 4 段；儿童型号（category=儿童）不进推荐。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
