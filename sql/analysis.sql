@@ -194,3 +194,55 @@ SELECT tag_type, COUNT(*) AS 标签数, SUM(evidence_ok) AS 证据为原文, ROU
 FROM review_tags GROUP BY tag_type
 UNION ALL
 SELECT '合计', COUNT(*), SUM(evidence_ok), ROUND(AVG(evidence_ok), 3) FROM review_tags;
+
+
+-- name: 14_app_vs_noapp_overview
+-- D32：有 App 的 U7 Pro（在笑容加 App 适配列表中）vs 没有 App 的 P10（不在列表中）。
+-- 两个型号的样本构成：中差评数、近 12 个月占比（U7 Pro 旧评论多，对比时要注明）。
+SELECT model,
+       CASE model WHEN 'U7 Pro' THEN '有 App' ELSE '无 App' END AS App支持,
+       COUNT(*)                                         AS 全部,
+       SUM(generic = 0)                                 AS 非generic,
+       SUM(source_main IN ('中评', '差评') AND generic = 0) AS 中差评_非generic,
+       ROUND(AVG(is_recent_12m), 2)                     AS 近12个月占比
+FROM reviews
+WHERE model IN ('U7 Pro', 'P10')
+GROUP BY model;
+
+
+-- name: 15_app_vs_noapp_pain
+-- 两个型号各产品方面的负面条数，以及占该型号“有负面反馈评论”的比例。样本很小（每个方面 0–14 条），只看方向。
+WITH pain AS (
+    SELECT DISTINCT r.review_id, r.model
+    FROM reviews r JOIN review_tags t USING (review_id)
+    WHERE r.generic = 0 AND t.sentiment = '负面' AND r.model IN ('U7 Pro', 'P10')
+),
+n AS (SELECT model, COUNT(*) AS 有负面反馈评论 FROM pain GROUP BY model)
+SELECT t.tag_name,
+       SUM(r.model = 'U7 Pro' AND t.sentiment = '负面') AS U7Pro_负面,
+       ROUND(1.0 * SUM(r.model = 'U7 Pro' AND t.sentiment = '负面') / (SELECT 有负面反馈评论 FROM n WHERE model = 'U7 Pro'), 2) AS U7Pro_占比,
+       SUM(r.model = 'P10' AND t.sentiment = '负面')    AS P10_负面,
+       ROUND(1.0 * SUM(r.model = 'P10' AND t.sentiment = '负面') / (SELECT 有负面反馈评论 FROM n WHERE model = 'P10'), 2) AS P10_占比
+FROM review_tags t JOIN reviews r USING (review_id)
+WHERE r.generic = 0 AND t.tag_type = '产品' AND r.model IN ('U7 Pro', 'P10')
+GROUP BY t.tag_name
+ORDER BY U7Pro_负面 + P10_负面 DESC;
+
+
+-- name: 16_app_vs_noapp_usage
+-- 重点：“使用方法与操作”负面，以及有负面反馈的评论中 info_need / ai_can_help 的比例。
+WITH pain AS (
+    SELECT DISTINCT r.review_id, r.model, r.info_need, r.ai_can_help
+    FROM reviews r JOIN review_tags t USING (review_id)
+    WHERE r.generic = 0 AND t.sentiment = '负面' AND r.model IN ('U7 Pro', 'P10')
+)
+SELECT p.model,
+       COUNT(*)                                   AS 有负面反馈评论,
+       (SELECT COUNT(DISTINCT t.review_id) FROM review_tags t JOIN reviews r USING (review_id)
+         WHERE r.model = p.model AND r.generic = 0 AND t.tag = 'F6' AND t.sentiment = '负面') AS 使用方法_负面,
+       SUM(info_need)                             AS info_need条数,
+       ROUND(AVG(info_need), 2)                   AS info_need占比,
+       SUM(ai_can_help)                           AS ai_can_help条数,
+       ROUND(AVG(ai_can_help), 2)                 AS ai_can_help占比
+FROM pain p
+GROUP BY p.model;
