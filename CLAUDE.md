@@ -156,7 +156,7 @@ app.py             Streamlit Demo
 
 **已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D36。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
-**PRD 已按小程序与笑容加 App 分工修改（D32–D36，10/18）**：购后按型号分流（智能款 → App；基础款 → 首次设置和刷头提醒），周报已删除，评测对照扩到 25 题（E-25 用模拟设备数据，须标注）。原型截图定稿后，把截图嵌回 PRD 第十章。
+**PRD 已按小程序与笑容加 App 分工修改（D32–D36，10/18）**：购后按型号分流（智能款 → App；基础款 → 首次设置和刷头提醒），周报已删除，评测对照扩到 25 题（E-25 用模拟设备数据，须标注）。PRD 第十章已嵌入定稿原型截图（12 张）。
 
 **PRD 已按 AI 产品模板补章（D30，10/18）**：15 章 + 4 个附录。Demo 和评测后要回填：5.3 模型选型结论、附录 B 评测集、附录 C 完整 Prompt。PRD 写作经验持续记入 `docs/prd_skill_notes.md`，PRD 定稿后据此写一个撰写 PRD 的技能。
 

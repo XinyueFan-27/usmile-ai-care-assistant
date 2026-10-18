@@ -913,7 +913,20 @@ sequenceDiagram
 
 可点击原型覆盖第二章的全部 MVP 页面，包括首页、选购测评、推荐卡、购后按型号分流、基础款首次设置、智能款设置引导与 App 绑定授权、护齿问答和安全边界页。原型中所有官方信息（型号、价格、参数、出处、客服入口）都用“待知识库”占位，不编造。
 
-原型文件：`prototype/index.html`；页面截图与功能对照：`prototype/README.md`。原型正按 App 分工更新，截图更新后嵌入本章。
+原型文件：`prototype/index.html`；全部 24 张截图与功能对照见 `prototype/README.md`。主要页面如下（V2 个性化问答一屏使用模拟设备数据，页面上已标注“模拟设备数据，仅作演示，非真实用户”）：
+
+| 首页 | 选购测评 | 推荐卡 | 购后按型号分流 |
+|---|---|---|---|
+| <img src="../prototype/screenshots/01_home.png" width="180"> | <img src="../prototype/screenshots/03b_quiz_q2_multi.png" width="180"> | <img src="../prototype/screenshots/04a_rec.png" width="180"> | <img src="../prototype/screenshots/02_route.png" width="180"> |
+
+| 智能款：去 App 绑定 | 画像同步授权 | 基础款：首次设置结果 | 智能款：设置引导 |
+|---|---|---|---|
+| <img src="../prototype/screenshots/05_bind_app.png" width="180"> | <img src="../prototype/screenshots/06a_sync_consent.png" width="180"> | <img src="../prototype/screenshots/07a_setup_basic_result.png" width="180"> | <img src="../prototype/screenshots/08a_chat_smart_setting_go_app.png" width="180"> |
+
+| 问答：带出处的回答 | V2 个性化问答（模拟设备数据） | 安全边界：就医 | 安全边界：急症 |
+|---|---|---|---|
+| <img src="../prototype/screenshots/08c_chat_answer_cited.png" width="180"> | <img src="../prototype/screenshots/08e_chat_smart_devicedata_v2_simulated.png" width="180"> | <img src="../prototype/screenshots/09a_boundary_medical.png" width="180"> | <img src="../prototype/screenshots/09b_boundary_urgent.png" width="180"> |
+
 
 **AI 产品特殊交互要求**
 
