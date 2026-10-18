@@ -153,11 +153,13 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D29。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D30。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+
+**PRD 已按 AI 产品模板补章（D30，10/18）**：15 章 + 4 个附录。Demo 和评测后要回填：5.3 模型选型结论、附录 B 评测集、附录 C 完整 Prompt。PRD 写作经验持续记入 `docs/prd_skill_notes.md`，PRD 定稿后据此写一个撰写 PRD 的技能。
 
 **⑨ 原型已完成（D29）**：`prototype/index.html`（双击打开），屏幕 ↔ PRD 对照见 `prototype/README.md`，截图用 `.venv/bin/python src/shoot_prototype.py` 重跑。原型里所有灰色【待知识库】就是 ⑩ 要补的资料清单。
 
-**下一步：⑩ 知识库原文**，放 `kb/`，来源写 `kb/sources.md`（每块带来源链接和抓取日期）。要解决：PRD 第 11 章待决问题 1–4（型号与价位、刷头更换周期、儿童产品线、智能识别是否已改善），并补齐原型占位：在售型号名称和价格、型号属性表（推荐规则用）、各型号模式和档位、适配刷头、官方更换周期、说明书出处、客服和真伪查询入口。只用 usmile 官网 / 官方说明书 / 权威口腔科普，找不到就写【待核实】，不编造。
+**下一步：⑩ 知识库原文**，放 `kb/`，来源写 `kb/sources.md`（每块带来源链接和抓取日期）。要解决：PRD 第十五章待决问题 1–4（型号与价位、刷头更换周期、儿童产品线、智能识别是否已改善），并补齐原型占位：在售型号名称和价格、型号属性表（推荐规则用）、各型号模式和档位、适配刷头、官方更换周期、说明书出处、客服和真伪查询入口。只用 usmile 官网 / 官方说明书 / 权威口腔科普，找不到就写【待核实】，不编造。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
