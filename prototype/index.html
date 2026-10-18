@@ -149,6 +149,9 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
 .synclist .k{color:var(--sub);font-size:12px;display:block}
 .who{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line);font-size:12px;color:var(--sub)}
 .who .seg button{padding:3px 10px;font-size:12px}
+.simdata{border:2px dashed var(--warn);background:var(--warn-weak);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:var(--text)}
+.simdata b{color:var(--warn);font-size:13px}
+.tag.v2s{background:var(--demo);color:#fff;margin-left:6px}
 .appbtn{display:inline-block;margin-top:8px;background:var(--brand);color:#fff;border-radius:16px;padding:5px 14px;font-size:13px}
 @media (max-width:700px){
   .stage{padding:0;display:block}
@@ -164,7 +167,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     <div>微信小程序样式，9 屏。小程序是所有 usmile 用户的轻入口，智能款的设备设置和报告交给笑容加 App。点击手机内按钮按真实流程跳转，也可从这里直接跳。</div>
     <ol id="sideNav">
       <li><a href="#home">首页</a></li>
-      <li><a href="#route">选择你的情况（按型号分流）</a></li>
+      <li><a href="#route">选择你的型号（按型号分流）</a></li>
       <li><a href="#quiz">选购测评（5 题）</a></li>
       <li><a href="#rec">推荐卡</a></li>
       <li><a href="#bind">引导绑定笑容加 App（智能款）</a></li>
@@ -191,32 +194,28 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
           <div class="h2">你好，想先做什么？</div>
           <div class="sub">不用登录，直接开始</div>
         </div>
+        <button class="entry" data-go="quiz">
+          <span class="ic">🛒</span>
+          <span><span class="t">还没买，帮我选</span><br><span class="small">5 道题，约 1 分钟，推荐适合你的型号</span></span>
+          <span class="arr">›</span>
+        </button>
         <button class="entry" data-go="route">
           <span class="ic">🪥</span>
-          <span><span class="t">开始：选择你的情况</span><br><span class="small">还没买 / 已买智能款 / 已买基础款，按型号走不同路线</span></span>
+          <span><span class="t">已经买了，教我用</span><br><span class="small">先选型号，再给对应的使用帮助</span></span>
           <span class="arr">›</span>
         </button>
-        <button class="entry" data-go="chat">
-          <span class="ic">💬</span>
-          <span><span class="t">直接提问</span><br><span class="small">使用方法、刷头、适用人群，回答标注出处</span></span>
-          <span class="arr">›</span>
-        </button>
+        <div style="text-align:center;margin:-2px 0 14px"><a href="#chat" class="small" style="color:var(--brand)">有问题？直接提问 ›</a></div>
         <div class="note">本助手为个人作品集原型，非 usmile 官方。推荐只在 usmile 产品内进行。</div>
         <div class="disclaimer"><b>免责声明：</b>本助手提供的信息仅供参考，不能代替牙医诊断。</div>
       </div>
       <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
     </section>
 
-    <!-- 2 选择你的情况（按型号分流） -->
-    <section class="screen" id="s-route" data-title="选择你的情况">
+    <!-- 2 选择你的型号（按型号分流） -->
+    <section class="screen" id="s-route" data-title="选择你的型号">
       <div class="body">
         <div class="h2" style="font-size:18px">你的牙刷是哪一款？</div>
-        <div class="sub" style="margin-bottom:14px">按型号走不同路线；笑容加 App 已有的功能，小程序不重复做</div>
-        <button class="entry" data-route="presale">
-          <span class="ic">🛒</span>
-          <span><span class="t">还没买，帮我选</span><br><span class="small">5 道题，约 1 分钟，推荐适合你的型号</span></span>
-          <span class="arr">›</span>
-        </button>
+        <div class="sub" style="margin-bottom:14px">按 App 适配列表分流；笑容加 App 已有的功能，小程序不重复做</div>
         <button class="entry" data-route="smart">
           <span class="ic">📱</span>
           <span><span class="t">已买 · 智能款</span><br><span class="small">支持笑容加 App：<span class="ph">【待知识库：App 适配机型】</span></span><br><span class="small">去 App 绑定；设备设置和报告在 App 里</span></span>
@@ -227,8 +226,12 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
           <span><span class="t">已买 · 基础款</span><br><span class="small">不连 App，如 P10：<span class="ph">【待知识库：基础款机型】</span></span><br><span class="small">首次设置建议 + 刷头更换提醒</span></span>
           <span class="arr">›</span>
         </button>
-        <div class="disclaimer">不确定自己的型号？查看方法：<span class="ph">【待知识库：官方查看型号的方法】</span>。是否支持 App 以官网下载页为准。</div>
-        <div class="small" style="margin-top:10px">三条路线都可以随时进入问答。</div>
+        <button class="entry" data-route="unsure">
+          <span class="ic" style="color:var(--brand);font-weight:700">?</span>
+          <span><span class="t">我不确定</span><br><span class="small">先给通用建议；查看型号方法：<span class="ph">【待知识库】</span></span></span>
+          <span class="arr">›</span>
+        </button>
+        <div class="disclaimer">是否支持 App 以官网适配列表为准 <span class="ph">【待核实】</span>。两条路线都保留问答入口。</div>
       </div>
       <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
     </section>
@@ -310,11 +313,10 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
         </div>
         <div class="card">
           <div class="step"><span class="n">1</span><div><div style="font-weight:600">下载笑容加 App</div><div class="small">入口：<span class="ph">【待知识库：官方下载入口】</span></div><button class="btn" id="dlBtn">去下载</button></div></div>
-          <div class="step"><span class="n">2</span><div><div style="font-weight:600">在 App 里添加设备并绑定</div><div class="small">步骤：<span class="ph">【待知识库：官方绑定步骤】</span></div></div></div>
-          <div class="step"><span class="n">3</span><div><div style="font-weight:600">把测评结果同步到 App（可选）</div><div class="small">绑定时同步一次，让 App 一开始就按你的情况给建议</div><button class="btn" data-go="sync">去同步</button></div></div>
+          <div class="step"><span class="n">2</span><div><div style="font-weight:600">在 App 里添加设备并绑定</div><div class="small">步骤：<span class="ph">【待知识库：官方绑定步骤】</span><br>做过选购测评的话，绑定前会问你是否同步测评结果</div><button class="btn" data-go="sync">去 App 绑定</button></div></div>
         </div>
-        <button class="btn ghost" data-go="chat">有问题？去问答</button>
-        <div class="disclaimer"><b>说明：</b>本原型只演示跳转到笑容加 App，App 内页面不在原型范围。</div>
+        <div class="row"><button class="btn ghost" data-app-set>已绑定，去 App 设置</button><button class="btn ghost" data-go="chat">有问题？去问答</button></div>
+        <div class="disclaimer"><b>说明：</b>智能款不显示首次设置和刷头更换提醒，这些在 App 里完成。本原型只演示跳转到笑容加 App，App 内页面不在原型范围。</div>
       </div>
       <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
     </section>
@@ -324,18 +326,19 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
       <div class="body">
         <div class="card">
           <div style="font-size:17px;font-weight:600;margin-bottom:4px">把你的测评结果同步到笑容加 App？</div>
-          <div class="sub">绑定牙刷时同步一次，用于 App 一开始的使用建议</div>
+          <div class="sub">绑定牙刷时同步一次，用于 App 一开始的使用建议；不同步预算</div>
         </div>
         <div class="card">
-          <div style="font-weight:600">将同步的内容</div>
+          <div style="font-weight:600">将同步的内容（4 项）</div>
           <ul class="synclist" id="syncList"></ul>
         </div>
         <div class="card">
           <div style="font-weight:600;margin-bottom:6px">授权说明</div>
-          <div class="small">· 只同步上面的测评答案，只同步这一次，之后不自动同步<br>· 牙齿情况属于健康相关信息，需要你单独同意<br>· 可以撤回：<span class="ph">【待核实：撤回方式与 App 侧规则】</span><br>· 不同意也不影响使用小程序和 App</div>
+          <div class="small">· 只同步上面 4 项测评结果，<b>不同步预算</b>；只同步这一次<br>· 牙齿情况属于健康相关信息，需要你单独同意<br>· 可以撤回：<span class="ph">【待核实：撤回方式与 App 侧规则】</span><br>· 不同意也不影响绑定和使用</div>
         </div>
-        <div class="row" id="syncBtns"><button class="btn ghost" id="syncNo">暂不同步</button><button class="btn" id="syncYes">同意同步</button></div>
+        <div class="row" id="syncBtns"><button class="btn ghost" id="syncNo">不同步，去绑定</button><button class="btn" id="syncYes">同意并去绑定</button></div>
         <div class="small" id="syncState" style="text-align:center;margin-top:10px"></div>
+        <button class="btn" id="syncSkip" style="display:none;margin-top:10px">去 App 绑定</button>
         <button class="btn ghost" data-go="chat" style="margin-top:10px">去问答</button>
       </div>
       <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
@@ -414,6 +417,8 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
         <div class="chips" id="exampleChips">
           <button class="chip" data-kind="followup">「续航多久呀」<!-- Q052 --></button>
           <button class="chip" data-kind="answer">「怎么连接手机？」<!-- Q020 --></button>
+          <button class="chip" data-kind="setting">「默认模式是什么？能切换默认模式，下一次刷一起动还是想要的模式么？」<!-- Q088 --></button>
+          <button class="chip" data-kind="gentle">「轻柔模式能刷干净吗」<!-- Q117 --></button>
           <button class="chip" data-kind="head">「刷头用多久会炸毛？」<!-- Q035 --></button>
           <button class="chip" data-kind="ortho">「正畸带着皮套，能用吗？」<!-- Q089 --></button>
           <button class="chip" data-kind="nodata">「在海外的留子，连的上APP吗？」<!-- Q012 --></button>
@@ -594,23 +599,27 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
   $('#s-route').addEventListener('click', function(e){
     var b = e.target.closest('[data-route]'); if(!b) return;
     var r = b.dataset.route; setWho(r);
-    if(r==='presale'){ qi = 0; go('quiz'); } else if(r==='smart') go('bind'); else go('setup');
+    if(r==='smart') go('bind'); else if(r==='unsure'){ st = {model:'unsure'}; $('#setupResult').style.display='none'; go('setup'); } else go('setup');
   });
   $('#dlBtn').onclick = function(){ toast('原型：跳转笑容加 App 下载页 · 【待知识库】'); };
 
   // ---------- 画像同步 ----------
   function renderSync(){
     setWho('smart');
-    var has = ans.some(function(a){return a.length});
-    $('#syncList').innerHTML = has ? Q.map(function(q,k){
-      var v = ans[k].map(function(i){return plain(q.opts[i])}).join('、') || '（未作答）';
-      if(k===0) v = v.replace('官方价格','');
-      return '<li><span class="k">'+q.t+'</span>'+(k===0 && ans[0].length ? '价位段 '+(ans[0][0]+1) : v)+'</li>';
-    }).join('') : '<li>你还没做过选购测评，没有可同步的内容。<br><a href="#route" style="color:var(--brand)">去做测评 ›</a></li>';
+    // 只同步第 2–5 题，不同步预算（PRD 2.3.10）
+    var has = [1,2,3,4].some(function(k){return ans[k].length});
+    $('#syncList').innerHTML = has ? [1,2,3,4].map(function(k){
+      var q = Q[k], v = ans[k].map(function(i){return plain(q.opts[i])}).join('、') || '（未作答）';
+      return '<li><span class="k">'+q.t+'</span>'+v+'</li>';
+    }).join('') : '<li>你还没做过选购测评，没有可同步的内容，直接去绑定即可。</li>';
     $('#syncBtns').style.display = has ? 'flex' : 'none';
+    $('#syncSkip').style.display = has ? 'none' : 'block';
+    $('#syncState').textContent = '';
   }
-  $('#syncYes').onclick = function(){ $('#syncState').textContent = '已同步到笑容加 App（原型模拟），只同步这一次'; $('#syncBtns').style.display='none'; };
-  $('#syncNo').onclick = function(){ $('#syncState').textContent = '未同步，不影响使用；之后可以在这里再同步'; $('#syncBtns').style.display='none'; };
+  $('#syncYes').onclick = function(){ $('#syncState').textContent = '已同意：4 项测评结果将在绑定时同步一次（原型模拟）'; $('#syncBtns').style.display='none'; toast('原型：打开笑容加 App 绑定页 · 【待知识库】'); };
+  $('#syncNo').onclick = function(){ $('#syncState').textContent = '未同步，不影响绑定'; $('#syncBtns').style.display='none'; toast('原型：打开笑容加 App 绑定页 · 【待知识库】'); };
+  $('#syncSkip').onclick = function(){ toast('原型：打开笑容加 App 绑定页 · 【待知识库】'); };
+  document.addEventListener('click', function(e){ if(e.target.closest('[data-app-set]')) toast('原型：打开笑容加 App 设置页 · 跳转方式【待知识库】'); });
 
   // ---------- 首次设置 ----------
   var st = {};
@@ -669,7 +678,10 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     var c = e.target.closest('.chip'); if(!c) return; var k = c.dataset.kind;
     userSay(c);
     if(k==='followup') addMsg('bot','你用的是哪一款？续航因型号不同而不同。<div class="chips"><button class="chip" data-model="a">型号 A '+PH()+'</button><button class="chip" data-model="b">型号 B '+PH()+'</button><button class="chip" data-model="unsure">我不确定</button></div>');
-    else if(k==='answer' && who==='smart') addMsg('bot', answerCard('<div class="sec"><span class="k">简要说明</span><br>'+PH('官方说明摘要')+'<br><button class="appbtn" data-app>去笑容加 App 设置 ›</button></div>'));
+    else if(k==='setting' && who==='smart') addMsg('bot', answerCard('<div class="sec"><span class="k">简要说明</span><br>'+PH('官方说明摘要')+'<br>小程序里不能改设置，请在 App 里操作。<br><button class="appbtn" data-app>去笑容加 App 设置 ›</button></div>'));
+    else if(k==='setting') addMsg('bot', answerCard('<div class="sec"><span class="k">操作方法</span><br>'+PH('说明书中的模式说明')+'</div>'));
+    else if(k==='gentle' && who==='smart') addMsg('bot', '<div class="simdata"><b>⚠ 模拟设备数据，仅作演示，非真实用户</b><span class="tag v2s">V2</span><br>参考了你的牙刷数据 · 更新时间：模拟<br>近期力度过大次数：较多（模拟）</div>'+answerCard('<div class="sec"><span class="k">结合你的牙刷数据</span><br>刷的时候注意按压力度。<span class="small">只参考摘要，不展示完整报告，不做诊断</span></div>'));
+    else if(k==='gentle') addMsg('bot', answerCard());
     else if(k==='answer') addMsg('bot', answerCard('<div class="sec"><span class="k">操作步骤</span><br>'+PH('说明书步骤')+'</div>'));
     else if(k==='head' && who==='smart') addMsg('bot', answerCard('<div class="sec"><span class="k">官方更换周期</span><br>'+PH('官方更换周期')+'<br>刷头使用记录和更换提醒在笑容加 App 里。<br><button class="appbtn" data-app>去笑容加 App 查看 ›</button></div>'));
     else if(k==='head' && who==='basic') addMsg('bot', answerCard('<div class="sec"><span class="k">官方更换周期</span><br>'+PH('官方更换周期')+'<br><a href="#setup" style="color:var(--brand)">开启刷头更换提醒 ›</a></div>'));

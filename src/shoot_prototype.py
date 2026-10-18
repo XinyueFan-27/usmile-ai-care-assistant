@@ -39,12 +39,13 @@ def main():
             problems[name] = page.evaluate(CHECK)
             page.screenshot(path=str(OUT / f"{name}.png"), full_page=True)
 
-        # 按真实流程点击：首页 → 选择情况（还没买）→ 测评 5 题 → 推荐卡
+        # 按真实流程点击：首页 → 已经买了（选型号）；首页 → 还没买 → 测评 5 题 → 推荐卡
         page.goto(PAGE + "#home")
         shot("01_home")
-        page.click("text=开始：选择你的情况")
+        page.click("text=已经买了，教我用")
         shot("02_route")
-        page.click("#s-route [data-route=presale]")
+        page.goto(PAGE + "#home")
+        page.click("text=还没买，帮我选")
         shot("03a_quiz_q1_required")
         page.click("#qOpts .opt >> nth=0")
         page.click("#qNext")
@@ -67,15 +68,19 @@ def main():
         page.click("text=买好了 → 按型号继续")
         page.click("#s-route [data-route=smart]")
         shot("05_bind_app")
-        page.click("#s-bind [data-go=sync]")
+        page.click("#s-bind [data-go=sync]")  # 去 App 绑定 → 授权页
         shot("06a_sync_consent")
         page.click("#syncYes")
+        page.wait_for_timeout(1900)  # 等提示消失再截图
         shot("06b_sync_done")
 
         # 智能款用户在问答页问设备设置：先简要说明，再给“去 App 设置”
         page.click("#s-sync [data-go=chat]")
-        page.click("#exampleChips [data-kind=answer]")
-        shot("08a_chat_smart_go_app")
+        page.click("#exampleChips [data-kind=setting]")
+        shot("08a_chat_smart_setting_go_app")
+        # V2 设备数据同步：模拟设备数据，必须醒目标注
+        page.click("#exampleChips [data-kind=gentle]")
+        shot("08e_chat_smart_devicedata_v2_simulated")
 
         # 基础款路径：首次设置 + 刷头更换提醒
         page.goto(PAGE + "#route")
