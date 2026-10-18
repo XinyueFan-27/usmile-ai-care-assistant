@@ -39,71 +39,90 @@ def main():
             problems[name] = page.evaluate(CHECK)
             page.screenshot(path=str(OUT / f"{name}.png"), full_page=True)
 
-        # 按真实流程点击：首页 → 测评 5 题 → 推荐卡 → 首次设置
+        # 按真实流程点击：首页 → 选择情况（还没买）→ 测评 5 题 → 推荐卡
         page.goto(PAGE + "#home")
         shot("01_home")
-        page.click("text=还没买，帮我选")
-        shot("02a_quiz_q1_required")
+        page.click("text=开始：选择你的情况")
+        shot("02_route")
+        page.click("#s-route [data-route=presale]")
+        shot("03a_quiz_q1_required")
         page.click("#qOpts .opt >> nth=0")
         page.click("#qNext")
         page.click("#qOpts .opt >> nth=0")  # 牙龈敏感或容易出血
-        shot("02b_quiz_q2_multi")
+        shot("03b_quiz_q2_multi")
         page.click("#qNext")
         page.click("#qOpts .opt >> nth=3")  # 护理牙龈
         page.click("#qNext")
         page.click("#qOpts .opt >> nth=1")  # 续航长
         page.click("#qNext")
         page.click("#qOpts .opt >> nth=0")  # 第一次用
-        shot("02c_quiz_q5")
+        shot("03c_quiz_q5")
         page.click("#qNext")
-        shot("03a_rec")
+        shot("04a_rec")
         page.click("#emptyToggle")
-        shot("03b_rec_empty_budget")
+        shot("04b_rec_empty_budget")
         page.click("#emptyToggle")
-        page.click("text=已经买了 → 去首次设置")
+
+        # 买好了 → 智能款 → 引导绑定 → 画像同步（带着刚才的测评答案）
+        page.click("text=买好了 → 按型号继续")
+        page.click("#s-route [data-route=smart]")
+        shot("05_bind_app")
+        page.click("#s-bind [data-go=sync]")
+        shot("06a_sync_consent")
+        page.click("#syncYes")
+        shot("06b_sync_done")
+
+        # 智能款用户在问答页问设备设置：先简要说明，再给“去 App 设置”
+        page.click("#s-sync [data-go=chat]")
+        page.click("#exampleChips [data-kind=answer]")
+        shot("08a_chat_smart_go_app")
+
+        # 基础款路径：首次设置 + 刷头更换提醒
+        page.goto(PAGE + "#route")
+        page.click("#s-route [data-route=basic]")
+        page.click("#s-setup [data-key=model] button >> nth=0")
+        page.click("#s-setup [data-key=first] button >> nth=0")
+        page.click("#s-setup [data-key=sens] button >> nth=0")
         page.click("#s-setup [data-key=goal] button >> nth=2")
         page.click("#genBtn")
-        shot("04a_setup_result")
+        shot("07a_setup_basic_result")
         page.click("#remindBtn")
         page.evaluate("window.scrollTo(0,0)")
-        shot("04b_setup_subscribe")
+        shot("07b_setup_subscribe")
         page.click("#subYes")
 
         page.goto(PAGE + "#setup/unsure")
         page.reload()
-        shot("04c_setup_unsure_general")
+        shot("07c_setup_unsure_general")
 
         # 问答：追问一次 → 选型号 → 带出处的回答
         page.goto(PAGE + "#chat")
         page.reload()
         page.click("#exampleChips [data-kind=followup]")
-        shot("05a_chat_followup")
+        shot("08b_chat_followup")
         page.click("#chatBox [data-model=a]")
         page.click("#chatBox .feedback button >> nth=0")
-        shot("05b_chat_answer_cited")
+        shot("08c_chat_answer_cited")
         page.click("#exampleChips [data-kind=nodata]")
-        shot("05c_chat_nodata")
+        shot("08d_chat_nodata")
 
         # 边界页：从问答页点真实输入跳转
         page.click("#exampleChips [data-kind=b-medical]")
         page.wait_for_timeout(900)
-        shot("06a_boundary_medical")
+        shot("09a_boundary_medical")
         page.click("#urgentToggle")
-        shot("06b_boundary_urgent")
+        shot("09b_boundary_urgent")
         page.goto(PAGE + "#chat")
         page.click("#exampleChips [data-kind=b-service]")
         page.wait_for_timeout(900)
-        shot("06c_boundary_service")
+        shot("09c_boundary_service")
         page.goto(PAGE + "#chat")
         page.click("#exampleChips [data-kind=b-fake]")
         page.wait_for_timeout(900)
-        shot("06d_boundary_fake")
+        shot("09d_boundary_fake")
         page.goto(PAGE + "#rec")
         page.click("#s-rec [data-boundary=competitor]")
-        shot("06e_boundary_competitor")
-
-        page.goto(PAGE + "#weekly")
-        shot("07_weekly_v2")
+        shot("09e_boundary_competitor")
 
         # 桌面宽度总览（带左侧屏幕导航）
         desk = browser.new_page(viewport={"width": 1200, "height": 920})
