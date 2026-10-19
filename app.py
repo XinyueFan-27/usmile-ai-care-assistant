@@ -6,11 +6,13 @@
 以后换成真实小程序只重写这一层界面。
 """
 
+import json
 from datetime import date
 
 import streamlit as st
 
 from src.core import service
+from src.core.config import FALLBACK_LABEL, MOCK_LABEL
 from src.core.examples import EXAMPLES
 from src.core.kb import default_sources
 
@@ -176,7 +178,13 @@ def model_card(card: dict, title: str):
 
 def page_rec():
     nav("为你推荐", back="quiz")
-    res = service.recommend(ss.answers)
+    # 推荐结果（含大模型写的理由）只在答案变化时算一次；点页面上其他按钮不再重新调用大模型
+    key = json.dumps(ss.answers, ensure_ascii=False, sort_keys=True)
+    if ss.get("rec_key") != key:
+        with st.spinner("正在生成推荐理由…"):
+            ss.rec = service.recommend(ss.answers)
+        ss.rec_key = key
+    res = ss.rec
     if res["status"] == "ok":
         model_card(res["main"], "主推")
         if res.get("backup"):
@@ -329,7 +337,8 @@ def page_setup():
 # ---------------- 护齿问答 ----------------
 def run_ask(question: str, followup_done: bool = False, model: str | None = None):
     m = model or (ss.model if ss.identity != "未购" else None)
-    res = service.ask(question, m, followup_done, use_device_data=ss.get("use_device", False))
+    with st.spinner("正在查找官方资料…"):
+        res = service.ask(question, m, followup_done, use_device_data=ss.get("use_device", False))
     ss.chat.append({"q": question, "res": res})
     if res["type"] == "boundary":
         ss.boundary = res
@@ -343,9 +352,10 @@ def render_answer(item: dict, k: int):
     if res.get("simulated"):
         html += f'<div class="sim">{META["simulated_label"]}</div>'
     text = res["answer"]
-    if res.get("mode") == "mock":
-        html += f'<div class="mock">{META["mock_label"]}</div>'
-        text = text.replace(META["mock_label"], "").strip()
+    for mode, label in (("mock", MOCK_LABEL), ("fallback", FALLBACK_LABEL)):
+        if res.get("mode") == mode:
+            html += f'<div class="mock">{label}</div>'
+            text = text.replace(label, "").strip()
     if res["type"] == "subjective":
         html += '<span class="tag">体验因人而异</span><br>'
     html += esc(text)
@@ -402,8 +412,7 @@ def page_chat():
         render_answer(item, k)
     q = st.chat_input("输入你的问题")
     if q:
-        with st.spinner("正在查找官方资料…"):
-            run_ask(q)
+        run_ask(q)
         st.rerun()
     if ss.chat and st.button("清空对话"):
         ss.chat = []

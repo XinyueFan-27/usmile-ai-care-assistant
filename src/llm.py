@@ -35,22 +35,28 @@ def model_name() -> str:
     return name
 
 
-def _client() -> OpenAI:
+def _client(timeout: float = 60) -> OpenAI:
     if not has_key():
         raise RuntimeError("未设置 ZHIPU_API_KEY，请在 .env 中填写")
     return OpenAI(
         api_key=os.environ["ZHIPU_API_KEY"],
         base_url=os.getenv("ZHIPU_BASE_URL") or DEFAULT_BASE_URL,
         max_retries=0,  # 重试由下面自己控制
-        timeout=60,
+        timeout=timeout,
     )
 
 
-def chat(messages: list[dict], temperature: float = 0.1, model: str | None = None, **kwargs) -> str:
-    """调用一次对话，返回模型回复文本。model 不传时用 ZHIPU_MODEL。"""
+def chat(messages: list[dict], temperature: float = 0.1, model: str | None = None,
+         retries: int | None = None, timeout: float = 60, max_delay: float | None = None, **kwargs) -> str:
+    """调用一次对话，返回模型回复文本。model 不传时用 ZHIPU_MODEL。
+
+    retries / timeout / max_delay 给 Demo 界面用：页面上不能长时间等待，少重试、短等待，失败由调用方兜底。
+    批量脚本不传这几个参数，行为和原来一样（最多 5 次，429 长退避）。
+    """
     global _last_call
-    client = _client()
-    for attempt in range(1, MAX_RETRIES + 1):
+    client = _client(timeout)
+    retries = retries or MAX_RETRIES
+    for attempt in range(1, retries + 1):
         wait = MIN_INTERVAL - (time.time() - _last_call)
         if wait > 0:
             time.sleep(wait)
@@ -72,9 +78,11 @@ def chat(messages: list[dict], temperature: float = 0.1, model: str | None = Non
             # 只打印错误类型和状态码，不打印请求内容，避免泄露 Key
             status = getattr(e, "status_code", "")
             code = (getattr(e, "body", None) or {}).get("code", "") if isinstance(getattr(e, "body", None), dict) else ""
-            if attempt == MAX_RETRIES:
-                raise RuntimeError(f"GLM 调用失败（{type(e).__name__} {status} {code}），已重试 {MAX_RETRIES} 次") from None
+            if attempt == retries:
+                raise RuntimeError(f"GLM 调用失败（{type(e).__name__} {status} {code}），已重试 {retries} 次") from None
             delay = BACKOFF[min(attempt - 1, len(BACKOFF) - 1)] if status == 429 else 2 ** attempt
+            if max_delay is not None:
+                delay = min(delay, max_delay)
             print(f"  [重试 {attempt}] {status} {code}，{delay}s 后再试", flush=True)
             time.sleep(delay)
     raise AssertionError("unreachable")

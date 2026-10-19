@@ -57,7 +57,8 @@ def explain(card: dict, catalog: Catalog, use_llm: bool = True) -> dict:
     params = {k: v for k, v in model.raw.items() if not k.endswith("_src") and not is_unverified(v)}
     hits = [h["option"] for h in card["matched"][:3]]  # 最多 3 条理由
     try:
-        reply = llm.chat([
+        # 推荐卡不能卡住：只试 1 次、15 秒超时，失败用模板（PRD 2.4）
+        reply = llm.chat(retries=1, timeout=15, messages=[
             {"role": "system", "content": SYSTEM},
             {"role": "user", "content": f"官方参数：{json.dumps(params, ensure_ascii=False)}\n"
                                         f"命中的用户选项：{json.dumps(hits, ensure_ascii=False)}"},

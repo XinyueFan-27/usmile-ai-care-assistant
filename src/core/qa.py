@@ -16,7 +16,7 @@ import re
 
 from . import safety
 from .catalog import Catalog
-from .config import DISCLAIMER, MOCK_LABEL, PENDING, SIMULATED_LABEL
+from .config import DISCLAIMER, FALLBACK_LABEL, MOCK_LABEL, PENDING, SIMULATED_LABEL
 from .kb import Chunk, chunk_by_id, citation, default_chunks
 from .retriever import THRESHOLD, default_index
 
@@ -96,12 +96,14 @@ def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str,
         user += f"用户问题：{question}"
         try:
             system = SYSTEM + (DEVICE_RULE if device_summary else "")
-            reply = (llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}]) or "").strip()
+            reply = (llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}],
+                             retries=1, timeout=20) or "").strip()
             # 模型有时在正常回答后面再附一个 NO_EVIDENCE：有正文就去掉标记，只有标记才算没有依据
             body = reply.replace(NO_EVIDENCE, "").strip()
             return (body or NO_EVIDENCE), "llm"
-        except Exception:  # noqa: BLE001  模型服务不可用时退回 mock，界面会标明
-            pass
+        except Exception:  # noqa: BLE001  模型服务不可用（如限流）时退回资料要点，界面如实标明
+            lines = [FALLBACK_LABEL] + [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]
+            return "\n".join(lines), "fallback"
     lines = [MOCK_LABEL]
     lines += [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]
     return "\n".join(lines), "mock"
@@ -161,7 +163,7 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
     if device_summary:
         res["simulated"] = True
         res["notices"].insert(0, f"参考了你的牙刷数据（{SIMULATED_LABEL}），数据更新时间：{device_summary.get('updated_at', '模拟')}")
-        if mode == "mock" and device_summary.get("force_overuse") == "较多（模拟）":
+        if mode in ("mock", "fallback") and device_summary.get("force_overuse") == "较多（模拟）":
             res["notices"].append("你的牙刷数据显示近期力度过大次数较多，刷牙时注意减轻按压力度。")
     res["model"] = model
     return res
