@@ -4,6 +4,8 @@
 
 作者：范欣乐（Melody）
 
+**在线看原型**（纯前端、可点击，没有 AI 功能，官方参数为占位）：https://xinyuefan-27.github.io/usmile-ai-care-assistant/prototype/
+
 用京东公开评论和买家提问，找出电动牙刷用户的痛点，判断哪些适合用 AI 解决；据此定义一个微信小程序形态的“AI 护齿助手”，写出 PRD，做出带出处、会拒答的 RAG Demo，并用自建评测集迭代一轮。
 
 <p>
