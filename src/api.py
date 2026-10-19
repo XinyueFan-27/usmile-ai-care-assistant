@@ -126,5 +126,14 @@ def kb_note(chunk_id: str):
 
 
 app.include_router(api)
+class NoCacheStatic(StaticFiles):
+    """页面文件不缓存：前端改动后刷新就能看到（Demo 用）。"""
+
+    async def get_response(self, path, scope):
+        resp = await super().get_response(path, scope)
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp
+
+
 if WEB_DIR.exists():
-    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
+    app.mount("/", NoCacheStatic(directory=WEB_DIR, html=True), name="web")

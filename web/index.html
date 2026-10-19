@@ -240,6 +240,9 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
 .gen{font-size:11px;color:var(--ph-text);margin-top:6px}
 .modepill{display:inline-block;font-size:11px;color:var(--amber);background:var(--amber-weak);border-radius:8px;padding:2px 8px;margin-bottom:6px}
 .msg .sec a{word-break:break-all}
+.humanbar{display:flex;justify-content:flex-end;margin:0 12px 8px}
+.humanbar button{font-size:12px;font-weight:600;color:var(--brand-text);background:var(--brand-weak);border-radius:14px;padding:5px 12px}
+.svcbtn{display:inline-block;margin-top:8px;background:var(--card);color:var(--brand-text);border:1.5px solid #9db8ef;border-radius:16px;padding:5px 14px;font-size:13px;font-weight:600}
 @media (max-width:700px){
   .stage{padding:0;display:block}
   .side{display:none}
@@ -517,11 +520,26 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
         </div>
       </div>
       <div class="chatfoot">
+        <div class="humanbar"><button id="humanBtn">🎧 转人工客服</button></div>
         <div class="inputbar"><input id="chatInput" placeholder="请描述你的问题…"><button id="sendBtn" aria-label="发送">➤</button></div>
         <div class="inputnote">AI 建议仅供参考，不能代替牙医诊断；出血、肿胀请就医</div>
         <div class="foot" style="padding-top:4px;padding-bottom:12px">个人作品集项目，非 usmile 官方，未上线</div>
       </div>
       <!-- 安全边界：触发特定场景时由 AI 助手弹出，不是单独页面 -->
+      <!-- 转人工客服：输入框上方入口 + 回答不了时卡片内按钮（D49）；Demo 不接入真实客服系统，只展示官方客服渠道 -->
+      <div class="mask" id="svcMask">
+        <div class="sheet bsheet">
+          <div class="grip"></div>
+          <div class="kind">转人工客服</div>
+          <div class="alert">
+            <div class="h">联系 usmile 官方客服</div>
+            <div class="sub" id="humanText">正在读取官方客服渠道…</div>
+          </div>
+          <div class="small" id="humanSrc" style="margin:0 4px 12px"></div>
+          <div class="disclaimer" style="margin:0 0 12px">Demo 不接入真实客服系统，以上为知识库里的 usmile 官方客服渠道（抓取日期 2026-10-18）。</div>
+          <button class="btn ghost" id="humanClose">知道了</button>
+        </div>
+      </div>
       <div class="mask" id="bMask">
         <div class="sheet bsheet">
           <div class="grip"></div>
@@ -569,6 +587,6 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

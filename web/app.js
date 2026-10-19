@@ -325,6 +325,7 @@
     if (notices.length) html += '<div class="sec"><span class="k">补充说明</span><br>' + notices.map(function (n) { return '· ' + esc(n); }).join('<br>')
       + ((r.actions || []).indexOf('go_app') >= 0 ? '<br><button class="appbtn" data-app>去笑容加 App 设置 ›</button>' : '') + '</div>';
     else if ((r.actions || []).indexOf('go_app') >= 0) html += '<div class="sec"><button class="appbtn" data-app>去笑容加 App 设置 ›</button></div>';
+    if ((r.actions || []).indexOf('contact_service') >= 0) html += '<div class="sec"><button class="svcbtn" data-human>联系官方客服 ›</button></div>';
     html += citeHtml(r.citations) + genNote(r) + DISC + '<div class="feedback"><button>已解决</button><button>没解决</button></div>';
     return html;
   }
@@ -355,6 +356,7 @@
   }
   $('#chatBox').addEventListener('click', function (e) {
     if (e.target.closest('[data-app]')) { toast('Demo 不跳转笑容加 App · 跳转方式' + PENDING); return; }
+    if (e.target.closest('[data-human]')) { openHuman(); return; }
     var fb = e.target.closest('.feedback button'); if (fb) { $$('button', fb.parentNode).forEach(function (b) { b.classList.remove('sel'); }); fb.classList.add('sel'); return; }
     var rq = e.target.closest('[data-recq]');
     if (rq && !rq.disabled) { $$('[data-recq]', rq.parentNode).forEach(function (b) { b.disabled = true; }); ask(rq.textContent); return; }
@@ -373,6 +375,22 @@
   };
   $('#sendBtn').onclick = function () { var v = $('#chatInput').value.trim(); if (!v) return; $('#chatInput').value = ''; ask(v); };
   $('#chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#sendBtn').click(); });
+
+  // ---------- 转人工客服（D49）：内容来自知识库 KB-SVC-01 ----------
+  var human = null;
+  function openHuman() {
+    $('#svcMask').classList.add('on');
+    if (human) return;
+    api('/kb/KB-SVC-01').then(function (r) {
+      human = r;
+      $('#humanText').innerHTML = val(r.text);
+      var c = r.citations[0];
+      $('#humanSrc').innerHTML = c ? '出处：' + c.sources.map(function (s) { return s.url ? '<a href="' + s.url + '" target="_blank">' + esc(s.name) + '</a>' : esc(s.name); }).join('、') + '（' + esc(c.fetched) + '）' : '';
+    }).catch(function () { $('#humanText').innerHTML = val(PENDING); });
+  }
+  $('#humanBtn').onclick = openHuman;
+  $('#humanClose').onclick = function () { $('#svcMask').classList.remove('on'); };
+  $('#svcMask').onclick = function (e) { if (e.target === this) this.classList.remove('on'); };
 
   // ---------- 安全边界弹窗：类别由后端规则判断 ----------
   var svcUrl = '';
