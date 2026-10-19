@@ -16,7 +16,8 @@ import re
 
 from . import safety
 from .catalog import Catalog
-from .config import DISCLAIMER, FALLBACK_LABEL, KB_SUMMARY_LABEL, MOCK_LABEL, PENDING, SIMULATED_LABEL
+from .config import DISCLAIMER, FALLBACK_LABEL, KB_SUMMARY_LABEL, MOCK_LABEL, PENDING, QUOTA_LABEL, SIMULATED_LABEL
+from .quota import QuotaExceeded
 from .kb import Chunk, chunk_by_id, citation, default_chunks
 from .llm_router import generate
 from .retriever import THRESHOLD, default_index
@@ -100,7 +101,7 @@ def _no_evidence(retriever_label: str) -> dict:
 
 
 def _generate(question: str, hits, model, device_summary, use_llm, profile=None) -> tuple[str, str]:
-    """返回 (回答, mode)。mode 为 llm:<模型名> / fallback / mock。回答为 NO_EVIDENCE 表示资料不足。"""
+    """返回 (回答, mode)。mode 为 llm:<模型名> / fallback / quota（演示额度用完）/ mock。回答为 NO_EVIDENCE 表示资料不足。"""
     from src import llm  # 延迟导入
     if use_llm and llm.has_key():
         material = "\n\n".join(f"[{i}] {c.title}（适用：{c.applies_to}）\n{c.body}" for i, (c, _) in enumerate(hits, 1))
@@ -122,9 +123,10 @@ def _generate(question: str, hits, model, device_summary, use_llm, profile=None)
             if not re.sub(r"[\s。，.,！!？?]", "", body):  # 只剩标点也算没有依据
                 body = ""
             return (body or NO_EVIDENCE), f"llm:{used}"
-        except Exception:  # noqa: BLE001  模型服务不可用（如限流）时退回资料要点，界面如实标明
-            lines = [FALLBACK_LABEL] + [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]
-            return "\n".join(lines), "fallback"
+        except Exception as e:  # noqa: BLE001  模型服务不可用（如限流）或演示额度用完时退回资料要点，界面如实标明
+            quota = isinstance(e, QuotaExceeded)
+            lines = [QUOTA_LABEL if quota else FALLBACK_LABEL] + [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]
+            return "\n".join(lines), ("quota" if quota else "fallback")
     lines = [MOCK_LABEL]
     lines += [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]
     return "\n".join(lines), "mock"

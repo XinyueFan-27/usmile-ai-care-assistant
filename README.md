@@ -35,7 +35,7 @@ cp .env.example .env          # 填入智谱 Key；不填也能跑，问答会�
 .venv/bin/uvicorn src.api:app --port 8000
 ```
 
-打开 http://127.0.0.1:8000/ 是 Demo 页面（网页模拟小程序），http://127.0.0.1:8000/docs 可以直接试接口。接口说明见 [docs/API.md](docs/API.md)。
+打开 http://127.0.0.1:8000/ 是 Demo 页面（网页模拟小程序），公开部署方式见 [deploy/huggingface/DEPLOY.md](deploy/huggingface/DEPLOY.md)；http://127.0.0.1:8000/docs 可以直接试接口。接口说明见 [docs/API.md](docs/API.md)。
 
 - 测试：`.venv/bin/python -m pytest`
 - 评测：`.venv/bin/python eval/run_eval.py`

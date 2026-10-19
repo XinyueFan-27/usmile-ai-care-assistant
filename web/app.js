@@ -298,7 +298,7 @@
     }
   }
   function stripLabel(text, mode) {
-    var label = { mock: LABELS.mock, fallback: LABELS.fallback, kb_summary: LABELS.kb_summary }[mode];
+    var label = { mock: LABELS.mock, fallback: LABELS.fallback, quota: LABELS.quota, kb_summary: LABELS.kb_summary }[mode];
     return label ? text.split(label).join('').trim() : text;
   }
   function citeHtml(cits) {
@@ -320,7 +320,7 @@
       var simNote = notices.length && /模拟设备数据/.test(notices[0]) ? notices.shift() : '';
       html += '<div class="simdata"><b>⚠ 模拟设备数据，仅作演示，非真实用户</b><span class="tag v2s">V2</span><br>' + esc(simNote.replace('（模拟设备数据，仅作演示，非真实用户）', '')) + '</div>';
     }
-    var pill = { mock: '未配置大模型 Key，以下为检索到的官方资料要点', fallback: '大模型暂时繁忙，以下为官方资料要点，未经大模型整理', kb_summary: '大模型没有整理出可靠回答，以下为相关官方资料要点' }[r.mode];
+    var pill = { mock: '未配置大模型 Key，以下为检索到的官方资料要点', fallback: '大模型暂时繁忙，以下为官方资料要点，未经大模型整理', quota: '公开 Demo 限制了大模型调用次数，以下为官方资料要点，可以稍后再问', kb_summary: '大模型没有整理出可靠回答，以下为相关官方资料要点' }[r.mode];
     html += '<div class="sec">' + (pill ? '<span class="modepill">' + pill + '</span><br>' : '') + '<span class="k">结论</span><br>' + val(stripLabel(r.answer, r.mode)) + '</div>';
     if (notices.length) html += '<div class="sec"><span class="k">补充说明</span><br>' + notices.map(function (n) { return '· ' + esc(n); }).join('<br>')
       + ((r.actions || []).indexOf('go_app') >= 0 ? '<br><button class="appbtn" data-app>去笑容加 App 设置 ›</button>' : '') + '</div>';
@@ -422,7 +422,7 @@
 
   // ---------- 启动：读取页脚、标注文案和测评题 ----------
   Promise.all([api('/health'), api('/quiz'), api('/kb/KB-APP-01')]).then(function (res) {
-    META = res[0]; LABELS = { mock: META.mock_label, fallback: META.fallback_label, kb_summary: META.kb_summary_label };
+    META = res[0]; LABELS = { mock: META.mock_label, fallback: META.fallback_label, quota: META.quota_label, kb_summary: META.kb_summary_label };
     var qz = res[1]; ASSUME = qz.business_assumption || [];
     Q = qz.questions.map(function (q, k) {
       return {

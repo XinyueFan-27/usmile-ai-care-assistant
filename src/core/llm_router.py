@@ -19,6 +19,8 @@ def generate(messages: list[dict], timeout: float = 20, temperature: float = 0.0
     """返回 (回复文本, 实际使用的模型名)。主备都失败时抛出 RuntimeError。"""
     from src import llm
 
+    from .quota import check_and_count
+    check_and_count()  # 公开部署时限流；超限抛 QuotaExceeded，调用方走原兜底
     patient = os.getenv("DEMO_LLM_PATIENT") == "1"
     opts = {"temperature": temperature}  # 默认 0：同一问题的回答尽量稳定（v2 发现两次跑结果差别大）
     if not patient:

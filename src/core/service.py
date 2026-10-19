@@ -15,7 +15,8 @@ from . import care, device_sim, qa, quiz, reasons, routing
 from .catalog import Catalog, load_catalog
 from .kb import default_sources
 from .llm_router import fallback_model
-from .config import DISCLAIMER, FALLBACK_LABEL, FOOTER, KB_SUMMARY_LABEL, MOCK_LABEL, SIMULATED_LABEL
+from .quota import status as quota_status
+from .config import DISCLAIMER, FALLBACK_LABEL, FOOTER, KB_SUMMARY_LABEL, MOCK_LABEL, QUOTA_LABEL, SIMULATED_LABEL
 
 
 @lru_cache(maxsize=1)
@@ -40,6 +41,8 @@ def meta() -> dict:
         "mock_label": MOCK_LABEL,
         "fallback_label": FALLBACK_LABEL,
         "kb_summary_label": KB_SUMMARY_LABEL,
+        "quota": quota_status(),
+        "quota_label": QUOTA_LABEL,
         "simulated_label": SIMULATED_LABEL,
         "retriever": default_index().label,
         "model_attributes": {"available": cat.available, "models": len(cat.models)},

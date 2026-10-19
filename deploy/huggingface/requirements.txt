@@ -1,0 +1,10 @@
+# 公开 Demo 运行所需（不含分析、截图、测试用的包）；版本与本地开发环境一致
+fastapi==0.146.0
+uvicorn==0.54.0
+pydantic==2.14.1
+openai==3.32.0
+python-dotenv==1.2.4
+numpy==2.5.4
+sentence-transformers==6.1.0
+transformers==5.20.1
+faiss-cpu==1.15.1

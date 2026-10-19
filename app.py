@@ -12,7 +12,7 @@ from datetime import date
 import streamlit as st
 
 from src.core import service
-from src.core.config import FALLBACK_LABEL, KB_SUMMARY_LABEL, MOCK_LABEL
+from src.core.config import FALLBACK_LABEL, KB_SUMMARY_LABEL, MOCK_LABEL, QUOTA_LABEL
 from src.core.examples import EXAMPLES
 from src.core.kb import default_sources
 
@@ -396,7 +396,7 @@ def render_answer(item: dict, k: int):
     if res.get("simulated"):
         html += f'<div class="sim">{META["simulated_label"]}</div>'
     text = res["answer"]
-    for mode, label in (("mock", MOCK_LABEL), ("fallback", FALLBACK_LABEL), ("kb_summary", KB_SUMMARY_LABEL)):
+    for mode, label in (("mock", MOCK_LABEL), ("fallback", FALLBACK_LABEL), ("quota", QUOTA_LABEL), ("kb_summary", KB_SUMMARY_LABEL)):
         if res.get("mode") == mode:
             html += f'<div class="mock">{label}</div>'
             text = text.replace(label, "").strip()

@@ -10,14 +10,26 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.core import service
+from src.core.quota import client_ip
 
 app = FastAPI(title="usmile AI 护齿助手 Demo API（个人作品集，非官方，未上线）", version="0.2.0")
 api = APIRouter(prefix="/api")
+
+
+@app.middleware("http")
+async def remember_client_ip(request: Request, call_next):
+    """记下访问者 IP，给大模型限流用（src/core/quota.py）。不记录、不存储。"""
+    fwd = request.headers.get("x-forwarded-for", "")
+    token = client_ip.set(fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown"))
+    try:
+        return await call_next(request)
+    finally:
+        client_ip.reset(token)
 WEB_DIR = Path(__file__).resolve().parents[1] / "web"
 
 
