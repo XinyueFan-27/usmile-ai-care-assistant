@@ -6,14 +6,19 @@
 <title>AI 护齿助手原型</title>
 <!-- 个人作品集项目，非 usmile 官方，未上线。所有【待知识库】处在步骤 ⑩ 知识库完成后填入官方资料，不得编造。 -->
 <style>
+/* 视觉风格参照 Melody 提供的 Figma Make 最小 demo（浅灰底、大圆角卡片、蓝 / 浅绿双色功能卡、深色推荐卡、分段进度条）；只借风格，不用其中的品牌标识、人物照片和示例数据 */
 :root{
-  --bg:#e9ebef; --page:#f3f3f5; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e5e6eb;
-  --brand:#007cfa; --brand-weak:#e6f2ff; --brand-text:#0062c4; --sky:#aedbfc; --warn:#d83931; --warn-weak:#fdecea; --amber:#b25e00; --amber-weak:#fff4e5;
-  --ph-bg:#eceef1; --ph-text:#8f959e; --demo:#7a5af5;
+  --bg:#e8ecf2; --page:#f5f7fa; --card:#fff; --text:#1a1d24; --sub:#6b7280; --line:#e8ebf0;
+  --brand:#3a6bd6; --brand-weak:#eaf0fc; --brand-text:#2f5bc0; --sky:#e3f0fd;
+  --green:#e3eecf; --green-ink:#1f2a1a; --navy:#1d2a48;
+  --warn:#d83931; --warn-weak:#fdecea; --amber:#b25e00; --amber-weak:#fff4e5;
+  --ph-bg:#eceff3; --ph-text:#8f959e; --demo:#7a5af5;
+  --shadow:0 6px 20px rgba(29,42,72,.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font:15px/1.55 -apple-system,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+a{color:var(--brand);text-decoration:none}
 .stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:24px 16px}
 .side{width:240px;position:sticky;top:24px;font-size:13px;color:var(--sub)}
 .side h1{font-size:15px;color:var(--text);margin-bottom:4px}
@@ -21,138 +26,194 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .side li{margin:6px 0}
 .side a{color:var(--text)}
 .side a.on{color:var(--brand);font-weight:600}
-.side .meta{margin-top:14px;padding-top:10px;border-top:1px solid #d7d9dd}
-.phone{width:390px;min-height:844px;background:var(--page);border-radius:36px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;position:relative}
-.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font-size:14px;font-weight:600;background:var(--card)}
-.nav{height:44px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--card);border-bottom:1px solid var(--line)}
-.nav .title{font-size:16px;font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav .back{position:absolute;left:8px;width:36px;height:36px;font-size:22px;line-height:36px}
-.capsule{position:absolute;right:8px;width:86px;height:30px;border:1px solid var(--line);border-radius:15px;display:flex;align-items:center;justify-content:space-around;font-size:13px;color:#333}
+.side .meta{margin-top:14px;padding-top:10px;border-top:1px solid #d3d8e0}
+.phone{width:390px;min-height:844px;background:var(--page);border-radius:36px;overflow:hidden;box-shadow:0 10px 40px rgba(29,42,72,.15);display:flex;flex-direction:column;position:relative}
+.status{height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font-size:14px;font-weight:600;background:var(--page)}
+/* 顶部栏：圆形返回 + 小标题 + 大标题；右侧保留小程序胶囊 */
+.nav{min-height:56px;display:flex;align-items:center;gap:12px;padding:6px 16px 10px;background:var(--page)}
+.nav .back{width:38px;height:38px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);font-size:20px;line-height:36px;flex:none}
+.nav .ttl{flex:1;min-width:0}
+.nav .eyebrow{font-size:12px;color:var(--sub);line-height:1.3}
+.nav .title{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.nav .avatar{display:none;width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#5b8def,#3a6bd6);color:#fff;align-items:center;justify-content:center;font-size:18px;flex:none}
+.phone[data-screen=chat] .nav .avatar{display:flex}
+.phone[data-screen=chat] .nav{background:var(--card);border-bottom:1px solid var(--line);padding-bottom:8px}
+.phone[data-screen=chat] .status{background:var(--card)}
+.phone[data-screen=home] .nav .title{display:flex;align-items:center;overflow:visible}
+.mark{display:inline-flex;width:30px;height:30px;border-radius:9px;background:var(--text);color:#fff;align-items:center;justify-content:center;font-size:14px;margin-right:8px;flex:none}
+.pill{display:inline-block;font-size:11px;font-weight:600;color:var(--brand-text);background:var(--brand-weak);border-radius:10px;padding:1px 8px;vertical-align:2px;margin-left:4px}
+.capsule{width:80px;height:30px;border:1px solid var(--line);background:rgba(255,255,255,.7);border-radius:15px;display:flex;align-items:center;justify-content:space-around;font-size:13px;color:#333;flex:none}
 .capsule i{width:1px;height:16px;background:var(--line)}
 .screen{display:none;flex:1;flex-direction:column}
 .screen.on{display:flex}
-.body{flex:1;padding:16px}
+.body{flex:1;padding:8px 16px 16px}
 .foot{padding:14px 16px 22px;font-size:11px;color:var(--ph-text);text-align:center;line-height:1.6}
-.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px}
-.h2{font-size:20px;font-weight:700;margin-bottom:6px}
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.h2{font-size:22px;font-weight:800;margin-bottom:6px;letter-spacing:.2px}
 .sub{color:var(--sub);font-size:13px}
 .small{font-size:12px;color:var(--sub)}
-.ph{display:inline;background:var(--ph-bg);color:var(--ph-text);border-radius:4px;padding:1px 5px;font-size:.92em;white-space:normal}
-.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;line-height:18px;vertical-align:1px}
+.ph{display:inline;background:var(--ph-bg);color:var(--ph-text);border-radius:6px;padding:1px 6px;font-size:.92em;font-weight:400;white-space:normal}
+.ph.dark{background:rgba(255,255,255,.12);color:#b8c2d9}
+.tag{display:inline-block;font-size:11px;padding:0 8px;border-radius:10px;line-height:19px;vertical-align:1px}
 .tag.assume{background:var(--amber-weak);color:var(--amber)}
-.tag.hl{background:var(--brand-weak);color:var(--brand-text)}
-.btn{display:block;width:100%;height:46px;border-radius:23px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;text-align:center}
-.btn[disabled]{background:#9ccbfd;cursor:not-allowed}
-.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.tag.hl{background:var(--brand-weak);color:var(--brand-text);font-weight:600}
+.btn{display:block;width:100%;height:48px;border-radius:24px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;text-align:center;box-shadow:0 6px 16px rgba(58,107,214,.22)}
+.btn[disabled]{background:#a9bfef;box-shadow:none;cursor:not-allowed}
+.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:none}
 .btn+.btn{margin-top:10px}
 .row{display:flex;gap:10px}
 .row>.btn{margin-top:0}
-.disclaimer{font-size:12px;color:var(--sub);background:#f2f3f5;border-radius:8px;padding:8px 10px;margin-top:10px}
+.disclaimer{font-size:12px;color:var(--sub);background:#eef1f5;border-radius:12px;padding:9px 12px;margin-top:10px}
 .disclaimer b{color:var(--text)}
-/* 首页：顶部浅蓝渐变，参照 usmile App“我的”页的配色 */
-#s-home{background:linear-gradient(180deg,var(--sky) 0,#dae9fc 220px,var(--page) 460px)}
-.hero{padding:8px 4px 16px}
-.entry{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:18px;padding:18px 16px;margin-bottom:12px;width:100%;text-align:left;border:1px solid transparent}
-.entry:hover{border-color:var(--brand)}
-.entry .ic{width:48px;height:48px;border-radius:50%;background:var(--brand-weak);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
-.entry .t{font-size:17px;font-weight:600}
-.entry .arr{margin-left:auto;color:var(--ph-text);font-size:20px}
-.note{font-size:12px;color:var(--amber);background:var(--amber-weak);border-radius:8px;padding:8px 10px;margin-bottom:12px}
+.eyebrow-sec{font-size:11px;font-weight:700;letter-spacing:1.5px;color:#9aa1ad;margin:18px 2px 2px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px}
+.sec-h b{font-size:19px;font-weight:800}
+/* 首页 */
+.hero{position:relative;background:linear-gradient(135deg,#e6f1fe,#d6e8fb);border-radius:24px;padding:20px 18px;overflow:hidden;min-height:150px}
+.hero .eb{font-size:12px;font-weight:600;color:var(--brand-text)}
+.hero .hh{font-size:24px;font-weight:800;line-height:1.3;margin:6px 0}
+.hero .sub{max-width:200px}
+.brush{position:absolute;right:26px;top:22px;width:34px;height:120px;border-radius:17px;background:linear-gradient(180deg,#8fb3f5,#3a6bd6);transform:rotate(14deg);box-shadow:0 10px 20px rgba(58,107,214,.3)}
+.brush::before{content:"";position:absolute;left:11px;top:-26px;width:12px;height:30px;border-radius:6px 6px 3px 3px;background:#f4f6fa;box-shadow:inset 0 -6px 0 #dfe5ee}
+.brush::after{content:"";position:absolute;left:12px;top:30px;width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.8)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{position:relative;text-align:left;border-radius:22px;padding:16px 14px 18px;min-height:168px;display:flex;flex-direction:column;justify-content:flex-end}
+.tile.blue{background:var(--brand);color:#fff;box-shadow:0 10px 24px rgba(58,107,214,.3)}
+.tile.green{background:var(--green);color:var(--green-ink)}
+.tile .ic{position:absolute;left:14px;top:16px;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.tile.blue .ic{background:rgba(255,255,255,.18)}
+.tile.green .ic{background:rgba(255,255,255,.75)}
+.tile .t{font-size:16px;font-weight:800;line-height:1.3}
+.tile .s{font-size:12px;opacity:.85;margin-top:4px;padding-right:30px}
+.tile .go{position:absolute;right:12px;bottom:14px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.tile.blue .go{background:#fff;color:var(--brand)}
+.tile.green .go{background:var(--green-ink);color:#fff}
+.qlist{padding:4px 0}
+.qlist .li{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 16px;border-top:1px solid var(--line);font-size:14px;font-weight:600}
+.qlist .li:first-child{border-top:0}
+.qlist .no{width:30px;height:30px;border-radius:50%;background:var(--brand-weak);color:var(--brand-text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.qlist .arr,.entry .arr{margin-left:auto;color:#b4bac4;font-size:18px}
+.note{font-size:12px;color:var(--amber);background:var(--amber-weak);border-radius:12px;padding:9px 12px;margin:14px 0 0}
+.tabbar{display:flex;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:8px 8px 14px;position:sticky;bottom:0}
+.tabbar a{flex:1;text-align:center;font-size:12px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar a span{width:44px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.tabbar a.on{color:var(--brand);font-weight:600}
+.tabbar a.on span{background:var(--brand-weak)}
+/* 列表入口（分流屏） */
+.entry{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px;width:100%;text-align:left;border:1.5px solid transparent;box-shadow:var(--shadow)}
+.entry .ic{width:46px;height:46px;border-radius:14px;background:var(--brand-weak);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.entry.g .ic{background:var(--green)}
+.entry.o .ic{background:#fdf0e3}
+.entry .t{font-size:16px;font-weight:700}
 /* 问卷 */
-.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 16px}
-.progress>div{height:100%;background:var(--brand);transition:width .2s}
-.q-title{font-size:18px;font-weight:600;margin-bottom:4px}
-.opt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;margin-top:10px}
-.opt .box{width:18px;height:18px;border:1.5px solid #c9cdd4;border-radius:50%;flex:none}
-.opt.multi .box{border-radius:4px}
-.opt.sel{border-color:var(--brand);background:var(--brand-weak)}
-.opt.sel .box{border-color:var(--brand);background:var(--brand);box-shadow:inset 0 0 0 3px #fff}
-.quiz-actions{display:flex;gap:10px;margin-top:20px}
+.qnum{font-size:13px;font-weight:700;color:var(--brand);margin:10px 0 6px;letter-spacing:.5px}
+.segs{display:flex;gap:6px;margin:4px 0 14px}
+.segs i{flex:1;height:5px;border-radius:3px;background:#e1e5ec}
+.segs i.on{background:var(--brand)}
+.q-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;margin-top:12px}
+.opt .badge{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.opt .b0{background:#e8f0fe;color:#3a6bd6}.opt .b1{background:#e8f2dc;color:#5a7a35}.opt .b2{background:#fdeee0;color:#b4652a}.opt .b3{background:#efeafd;color:#6a52c9}.opt .b4{background:#fde8ee;color:#b5476a}
+.opt .ot{flex:1;font-weight:600}
+.opt .box{width:20px;height:20px;border:1.5px solid #c9cdd4;border-radius:50%;flex:none}
+.opt.multi .box{border-radius:6px}
+.opt.sel{border-color:#9db8ef;box-shadow:0 0 0 3px rgba(58,107,214,.08)}
+.opt.sel .box{border-color:var(--brand);background:var(--brand);box-shadow:inset 0 0 0 4px #fff}
+.quiz-actions{display:flex;gap:10px;margin-top:22px}
 .quiz-actions .btn{margin:0}
-.quiz-actions .btn.ghost{flex:0 0 96px}
-/* 推荐卡 */
-.pick{border:1.5px solid var(--brand);position:relative}
-.pick .label{position:absolute;top:-1px;left:-1px;background:var(--brand);color:#fff;font-size:12px;padding:2px 10px;border-radius:12px 0 10px 0}
-.model{font-size:18px;font-weight:700;margin:10px 0 4px}
+.quiz-actions .btn.ghost{flex:0 0 100px}
+/* 推荐卡：深色主推卡 */
+.darkcard{position:relative;background:var(--navy);color:#fff;border-radius:24px;padding:18px 18px 20px;margin-bottom:12px;overflow:hidden;box-shadow:0 12px 28px rgba(29,42,72,.25)}
+.darkcard .top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#aeb8cf}
+.darkcard .badge2{background:rgba(255,255,255,.14);color:#fff;font-weight:700;border-radius:12px;padding:3px 10px}
+.darkcard .lbl{font-size:13px;color:#aeb8cf;margin-top:22px}
+.darkcard .model{font-size:22px;font-weight:800;margin:4px 0 10px;max-width:240px}
+.darkcard .kv{color:#d6dcea}
+.darkcard .kv>span:first-child{color:#8f9bb6}
+.darkcard .brush{right:34px;top:62px;width:28px;height:78px}
 .kv{display:flex;gap:8px;font-size:13px;margin-top:6px}
 .kv>span:first-child{color:var(--sub);flex:none;min-width:64px;white-space:nowrap}
-.reason{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
-.reason:first-of-type{border-top:0}
-.reason .n{width:20px;height:20px;border-radius:50%;background:var(--brand-weak);color:var(--brand-text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px}
-.caution{background:var(--amber-weak);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:12px}
+.model{font-size:18px;font-weight:700;margin:10px 0 4px}
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.why .w{background:#f3f6fa;border-radius:14px;padding:10px 6px;text-align:center;font-size:12px;font-weight:600}
+.why .w i{display:block;font-style:normal;color:var(--brand);font-size:14px;margin-bottom:2px}
+.caution{background:var(--amber-weak);border-radius:18px;padding:14px 16px;font-size:14px;margin-bottom:12px}
 .caution b{color:var(--amber)}
-.bleed{background:var(--warn-weak);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;margin-top:10px}
+.bleed{background:var(--warn-weak);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;margin-top:10px}
 .empty{text-align:center;padding:36px 16px}
 .empty .big{font-size:40px}
 .demo-toggle{font-size:12px;color:var(--demo);text-decoration:underline;margin:4px 0 12px;display:inline-block}
 .askbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* 首次设置 */
 .field{margin-bottom:14px}
-.field>.lbl{font-size:14px;font-weight:600;margin-bottom:8px}
+.field>.lbl{font-size:14px;font-weight:700;margin-bottom:8px}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
-.seg button{padding:7px 12px;border:1.5px solid var(--line);border-radius:18px;background:var(--card);font-size:14px}
-.seg button.sel{border-color:var(--brand);background:var(--brand-weak);color:var(--brand-text)}
-input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;width:100%;background:var(--card)}
+.seg button{padding:7px 14px;border:1.5px solid var(--line);border-radius:18px;background:var(--card);font-size:14px}
+.seg button.sel{border-color:#9db8ef;background:var(--brand-weak);color:var(--brand-text);font-weight:600}
+input[type=date]{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:14px;width:100%;background:var(--card)}
 .result .item{padding:10px 0;border-top:1px solid var(--line)}
 .result .item:first-of-type{border-top:0}
 .result .k{font-size:13px;color:var(--sub)}
-.remind{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--brand-weak);border-radius:10px;padding:12px}
+.remind{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--brand-weak);border-radius:16px;padding:12px 14px}
 .remind .btn{width:auto;height:36px;padding:0 16px;font-size:14px;flex:none}
-.general{background:var(--amber-weak);color:var(--amber);font-size:12px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:6px}
+.general{background:var(--amber-weak);color:var(--amber);font-size:12px;font-weight:600;padding:2px 10px;border-radius:10px;display:inline-block;margin-bottom:6px}
 /* 弹层 */
-.mask{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:5}
+.mask{position:absolute;inset:0;background:rgba(15,20,35,.45);display:none;align-items:flex-end;z-index:5}
 .mask.on{display:flex}
-.sheet{background:var(--card);width:100%;border-radius:14px 14px 0 0;padding:18px 16px 26px}
-.toast{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;font-size:14px;padding:10px 16px;border-radius:8px;max-width:300px;text-align:center;display:none;z-index:6}
+.sheet{background:var(--card);width:100%;border-radius:24px 24px 0 0;padding:20px 16px 28px}
+.toast{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);background:rgba(20,24,35,.85);color:#fff;font-size:14px;padding:10px 16px;border-radius:12px;max-width:300px;text-align:center;display:none;z-index:6}
 /* 问答 */
-.chat{flex:1;padding:12px 12px 4px;display:flex;flex-direction:column;gap:10px}
-.msg{max-width:84%;padding:10px 12px;border-radius:12px;font-size:14px;word-break:break-word}
-.msg.bot{background:var(--card);align-self:flex-start;border-top-left-radius:4px}
-.msg.user{background:#d3e8ff;align-self:flex-end;border-top-right-radius:4px}
-.msg .src{display:block;font-size:11px;color:#3d6a9e;margin-top:2px}
+.chat{flex:1;padding:14px 16px 6px;display:flex;flex-direction:column;gap:12px;background:#f2f5f9}
+.msg{max-width:86%;padding:11px 14px;border-radius:18px;font-size:14px;word-break:break-word;box-shadow:0 2px 8px rgba(29,42,72,.05)}
+.msg.bot{background:var(--card);align-self:flex-start;border-top-left-radius:6px}
+.msg.user{background:var(--brand);color:#fff;align-self:flex-end;border-top-right-radius:6px}
+.msg.user .ph{background:rgba(255,255,255,.2);color:#e6edfb}
+.msg .src{display:block;font-size:11px;color:#c9d7f5;margin-top:2px}
 .msg .sec{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px}
 .msg .sec:first-child{margin-top:0;padding-top:0;border-top:0}
 .msg .k{color:var(--sub);font-size:12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:5px 11px;font-size:13px;text-align:left}
-.chip.hl{border-color:var(--brand);color:var(--brand-text)}
-.feedback{display:flex;gap:8px;margin-top:8px}
-.feedback button{flex:1;border:1px solid var(--line);border-radius:6px;padding:4px 0;font-size:12px}
-.feedback button.sel{border-color:var(--brand);color:var(--brand-text);background:var(--brand-weak)}
-.examples{padding:10px 12px;background:var(--page);border-top:1px solid var(--line)}
-.examples .small{margin-bottom:6px}
-.inputbar{display:flex;gap:8px;padding:8px 12px 10px;background:#f7f7f7;border-top:1px solid var(--line)}
-.inputbar input{flex:1;height:38px;border:0;border-radius:6px;padding:0 10px;font:inherit;font-size:14px}
-.inputbar button{background:var(--brand);color:#fff;border-radius:6px;padding:0 14px;font-size:14px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 12px;font-size:13px;text-align:left}
+.chip.hl{border-color:#9db8ef;color:var(--brand-text);background:var(--brand-weak)}
+.feedback{display:flex;gap:8px;margin-top:10px}
+.feedback button{flex:1;border:1px solid var(--line);border-radius:14px;padding:5px 0;font-size:12px}
+.feedback button.sel{border-color:#9db8ef;color:var(--brand-text);background:var(--brand-weak)}
+.examples{padding:10px 16px;background:#f2f5f9}
+.examples .small{margin-bottom:4px}
+.inputbar{display:flex;gap:10px;align-items:center;margin:0 12px;padding:6px 6px 6px 16px;background:#eef1f5;border-radius:26px}
+.inputbar input{flex:1;height:36px;border:0;background:transparent;font:inherit;font-size:14px;outline:none}
+.inputbar button{width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;font-size:16px;flex:none}
+.inputnote{text-align:center;font-size:11px;color:var(--ph-text);margin:6px 0 0}
+.chatfoot{background:var(--card);padding-top:10px;border-top:1px solid var(--line)}
+.who{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:12px;color:var(--sub)}
+.who .seg button{padding:3px 10px;font-size:12px}
+.simdata{border:2px dashed var(--warn);background:var(--warn-weak);border-radius:12px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:var(--text)}
+.simdata b{color:var(--warn);font-size:13px}
+.tag.v2s{background:var(--demo);color:#fff;margin-left:6px}
+.appbtn{display:inline-block;margin-top:8px;background:var(--brand);color:#fff;border-radius:16px;padding:6px 14px;font-size:13px;font-weight:600}
 /* 边界页 */
-.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line)}
-.tabs button{flex:1;padding:11px 0;font-size:14px;color:var(--sub);border-bottom:2px solid transparent}
-.tabs button.sel{color:var(--text);font-weight:600;border-color:var(--brand)}
+.tabs{display:flex;gap:4px;background:#e9edf3;border-radius:16px;padding:4px;margin:4px 16px 4px}
+.tabs button{flex:1;padding:8px 0;font-size:13px;color:var(--sub);border-radius:12px}
+.tabs button.sel{color:var(--text);font-weight:700;background:var(--card);box-shadow:0 2px 6px rgba(29,42,72,.08)}
 .bd{display:none}
 .bd.on{display:block}
-.alert{border-radius:12px;padding:18px 16px;margin-bottom:12px}
-.alert.red{background:var(--warn-weak)}
+.alert{border-radius:20px;padding:18px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.alert.red{background:var(--warn-weak);box-shadow:none}
 .alert.red .h{color:var(--warn)}
-.alert .h{font-size:18px;font-weight:700;margin-bottom:6px}
-.quote{background:var(--card);border-left:3px solid var(--brand);border-radius:6px;padding:8px 10px;font-size:14px;margin-bottom:12px}
+.alert .h{font-size:18px;font-weight:800;margin-bottom:6px}
+.quote{background:var(--card);border-left:4px solid var(--brand);border-radius:14px;padding:10px 12px;font-size:14px;margin-bottom:12px;box-shadow:var(--shadow)}
 .quote .small{display:block}
-.urgent{text-align:center;padding:28px 16px;background:var(--warn);color:#fff;border-radius:12px;margin-bottom:12px}
+.urgent{text-align:center;padding:28px 16px;background:var(--warn);color:#fff;border-radius:20px;margin-bottom:12px}
 .urgent .h{font-size:26px;font-weight:800}
 /* 绑定 / 同步 */
 .step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .step:first-of-type{border-top:0}
-.step .n{width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
-.step .btn{width:auto;height:32px;padding:0 14px;font-size:13px;display:inline-block;margin-top:8px}
+.step .n{width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.step .btn{width:auto;height:34px;padding:0 16px;font-size:13px;display:inline-block;margin-top:8px}
 .synclist{margin:8px 0 0 0;list-style:none}
-.synclist li{padding:6px 0;border-top:1px dashed var(--line);font-size:14px}
+.synclist li{padding:7px 0;border-top:1px dashed var(--line);font-size:14px;font-weight:600}
 .synclist li:first-child{border-top:0}
-.synclist .k{color:var(--sub);font-size:12px;display:block}
-.who{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line);font-size:12px;color:var(--sub)}
-.who .seg button{padding:3px 10px;font-size:12px}
-.simdata{border:2px dashed var(--warn);background:var(--warn-weak);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:var(--text)}
-.simdata b{color:var(--warn);font-size:13px}
-.tag.v2s{background:var(--demo);color:#fff;margin-left:6px}
-.appbtn{display:inline-block;margin-top:8px;background:var(--brand);color:#fff;border-radius:16px;padding:5px 14px;font-size:13px}
+.synclist .k{color:var(--sub);font-size:12px;font-weight:400;display:block}
 @media (max-width:700px){
   .stage{padding:0;display:block}
   .side{display:none}
@@ -183,7 +244,8 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     <div class="status"><span>9:41</span><span>●●● ▮</span></div>
     <div class="nav">
       <button class="back" id="backBtn" aria-label="返回">‹</button>
-      <div class="title" id="navTitle">AI 护齿助手</div>
+      <span class="avatar">✦</span>
+      <div class="ttl"><div class="eyebrow" id="navEyebrow"></div><div class="title" id="navTitle">AI 护齿助手</div></div>
       <div class="capsule"><span>•••</span><i></i><span>◎</span></div>
     </div>
 
@@ -191,43 +253,48 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     <section class="screen" id="s-home" data-title="AI 护齿助手">
       <div class="body">
         <div class="hero">
-          <div class="h2">你好，想先做什么？</div>
+          <div class="eb">你的护齿搭档</div>
+          <div class="hh">买前帮你选<br>买后教你用</div>
           <div class="sub">不用登录，直接开始</div>
+          <span class="brush"></span>
         </div>
-        <button class="entry" data-go="quiz">
-          <span class="ic">🛒</span>
-          <span><span class="t">还没买，帮我选</span><br><span class="small">5 道题，约 1 分钟，推荐适合你的型号</span></span>
-          <span class="arr">›</span>
-        </button>
-        <button class="entry" data-go="route">
-          <span class="ic">🪥</span>
-          <span><span class="t">已经买了，教我用</span><br><span class="small">先选型号，再给对应的使用帮助</span></span>
-          <span class="arr">›</span>
-        </button>
-        <div style="text-align:center;margin:-2px 0 14px"><a href="#chat" class="small" style="color:var(--brand)">有问题？直接提问 ›</a></div>
+        <div class="eyebrow-sec">AI SMART SERVICE</div>
+        <div class="sec-h"><b>我可以帮你</b></div>
+        <div class="duo">
+          <button class="tile blue" data-go="quiz"><span class="ic">✦</span><span class="t">还没买，<br>帮我选</span><span class="s">5 道题，约 1 分钟</span><span class="go">›</span></button>
+          <button class="tile green" data-go="route"><span class="ic">🪥</span><span class="t">已经买了，<br>教我用</span><span class="s">先选型号再教你用</span><span class="go">›</span></button>
+        </div>
+        <div class="sec-h" style="margin-top:20px"><b>大家常问</b><a href="#chat" class="small" style="color:var(--brand)">去提问 ›</a></div>
+        <div class="card qlist" style="padding:4px 0">
+          <button class="li" data-ask="followup"><span class="no">01</span>「续航多久呀」<!-- Q052 --><span class="arr">›</span></button>
+          <button class="li" data-ask="head"><span class="no">02</span>「刷头用多久会炸毛？」<!-- Q035 --><span class="arr">›</span></button>
+          <button class="li" data-ask="ortho"><span class="no">03</span>「正畸带着皮套，能用吗？」<!-- Q089 --><span class="arr">›</span></button>
+        </div>
+        <div class="small" style="margin:-4px 4px 0">以上为京东买家提问原文</div>
         <div class="note">本助手为个人作品集原型，非 usmile 官方。推荐只在 usmile 产品内进行。</div>
         <div class="disclaimer"><b>免责声明：</b>本助手提供的信息仅供参考，不能代替牙医诊断。</div>
       </div>
       <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
+      <nav class="tabbar"><a href="#home" class="on"><span>⌂</span>首页</a><a href="#quiz"><span>✦</span>智能选购</a><a href="#chat"><span>💬</span>AI 助手</a><a href="#route"><span>🪥</span>我的牙刷</a></nav>
     </section>
 
     <!-- 2 选择你的型号（按型号分流） -->
-    <section class="screen" id="s-route" data-title="选择你的型号">
+    <section class="screen" id="s-route" data-eyebrow="已经买了" data-title="选择你的型号">
       <div class="body">
-        <div class="h2" style="font-size:18px">你的牙刷是哪一款？</div>
+        <div class="h2">你的牙刷是哪一款？</div>
         <div class="sub" style="margin-bottom:14px">按 App 适配列表分流；笑容加 App 已有的功能，小程序不重复做</div>
         <button class="entry" data-route="smart">
           <span class="ic">📱</span>
           <span><span class="t">已买 · 智能款</span><br><span class="small">支持笑容加 App：<span class="ph">【待知识库：App 适配机型】</span></span><br><span class="small">去 App 绑定；设备设置和报告在 App 里</span></span>
           <span class="arr">›</span>
         </button>
-        <button class="entry" data-route="basic">
+        <button class="entry g" data-route="basic">
           <span class="ic">🪥</span>
           <span><span class="t">已买 · 基础款</span><br><span class="small">不连 App，如 P10：<span class="ph">【待知识库：基础款机型】</span></span><br><span class="small">首次设置建议 + 刷头更换提醒</span></span>
           <span class="arr">›</span>
         </button>
-        <button class="entry" data-route="unsure">
-          <span class="ic" style="color:var(--brand);font-weight:700">?</span>
+        <button class="entry o" data-route="unsure">
+          <span class="ic" style="color:#b4652a;font-weight:800">?</span>
           <span><span class="t">我不确定</span><br><span class="small">先给通用建议；查看型号方法：<span class="ph">【待知识库】</span></span></span>
           <span class="arr">›</span>
         </button>
@@ -237,10 +304,10 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     </section>
 
     <!-- 3 选购测评 -->
-    <section class="screen" id="s-quiz" data-title="选购测评">
+    <section class="screen" id="s-quiz" data-eyebrow="AI 智能选购" data-title="定制你的选购测评">
       <div class="body">
-        <div class="small" id="qStep">第 1 / 5 题</div>
-        <div class="progress"><div id="qBar" style="width:20%"></div></div>
+        <div class="segs" id="qSegs"></div>
+        <div class="qnum" id="qStep">01 / 05</div>
         <div class="q-title" id="qTitle"></div>
         <div class="small" id="qHint"></div>
         <div id="qOpts"></div>
@@ -254,21 +321,25 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     </section>
 
     <!-- 4 推荐卡 -->
-    <section class="screen" id="s-rec" data-title="你的推荐">
+    <section class="screen" id="s-rec" data-eyebrow="AI 智能选购" data-title="为你推荐">
       <div class="body" id="recBody">
         <button class="demo-toggle" id="emptyToggle">原型演示：切换为“预算内没有合适型号”</button>
         <div id="recFull">
-          <div class="card pick">
-            <span class="label">主推</span>
-            <div class="model"><span class="ph">【待知识库：型号名称】</span></div>
-            <div class="kv"><span>价格</span><span class="ph">【待知识库】</span></div>
-            <div class="kv"><span>推荐刷头</span><span><span id="headType"></span><span class="ph">【待知识库：官方适配刷头】</span></span></div>
-            <div class="kv"><span>参数出处</span><span class="ph">【待知识库：来源链接 + 更新日期】</span></div>
+          <div class="darkcard">
+            <div class="top"><span class="badge2">主推</span><span>规则选型号</span></div>
+            <div class="lbl">主推型号</div>
+            <div class="model"><span class="ph dark">【待知识库：型号名称】</span></div>
+            <div class="kv"><span>价格</span><span class="ph dark">【待知识库】</span></div>
+            <div class="kv"><span>推荐刷头</span><span><span id="headType"></span><span class="ph dark">【待知识库：官方适配刷头】</span></span></div>
+            <div class="kv"><span>参数出处</span><span class="ph dark">【待知识库：来源链接 + 更新日期】</span></div>
+            <span class="brush"></span>
           </div>
           <div class="card">
-            <div style="font-weight:600;margin-bottom:4px">为什么推荐给你</div>
-            <div class="small" style="margin-bottom:6px">每条理由对应你的选项；理由由大模型根据官方参数生成，程序校验数字和出处</div>
-            <div id="reasons"></div>
+            <div style="font-weight:800;font-size:16px">为什么适合你</div>
+            <div class="why" id="reasons"></div>
+            <div class="small">每条理由的依据：<span class="ph">【待知识库：官方参数】</span>　出处：<span class="ph">【待知识库】</span></div>
+            <div class="small" style="margin-top:4px" id="basedOn"></div>
+            <div class="small" style="margin-top:4px">理由由大模型根据官方参数生成，程序校验数字和出处</div>
           </div>
           <div class="caution" id="caution"></div>
           <div class="card">
@@ -304,7 +375,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     </section>
 
     <!-- 引导绑定笑容加 App（智能款） -->
-    <section class="screen" id="s-bind" data-title="绑定笑容加 App">
+    <section class="screen" id="s-bind" data-eyebrow="智能款 · 设置引导" data-title="绑定笑容加 App">
       <div class="body">
         <div class="card">
           <span class="tag hl">智能款用户</span>
@@ -322,7 +393,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     </section>
 
     <!-- 画像同步（小程序 → App，授权后一次性） -->
-    <section class="screen" id="s-sync" data-title="同步测评结果">
+    <section class="screen" id="s-sync" data-eyebrow="画像同步 · 需你同意" data-title="同步测评结果">
       <div class="body">
         <div class="card">
           <div style="font-size:17px;font-weight:600;margin-bottom:4px">把你的测评结果同步到笑容加 App？</div>
@@ -345,7 +416,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     </section>
 
     <!-- 首次设置 + 刷头提醒（基础款） -->
-    <section class="screen" id="s-setup" data-title="首次设置">
+    <section class="screen" id="s-setup" data-eyebrow="基础款" data-title="首次设置">
       <div class="body">
         <div class="card">
           <div class="field">
@@ -409,11 +480,11 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     </section>
 
     <!-- 8 问答 -->
-    <section class="screen" id="s-chat" data-title="护齿问答">
+    <section class="screen" id="s-chat" data-eyebrow="回答标注出处 · 不代替牙医" data-title="AI 护齿助手">
       <div class="who">演示身份：<span class="seg" id="whoSeg"><button data-v="presale">未购</button><button data-v="smart">智能款（有 App）</button><button data-v="basic">基础款</button></span></div>
       <div class="chat" id="chatBox"></div>
       <div class="examples">
-        <div class="small">试试真实买家提问（京东原文）</div>
+        <div class="small">猜你想问 · 京东买家提问原文</div>
         <div class="chips" id="exampleChips">
           <button class="chip" data-kind="followup">「续航多久呀」<!-- Q052 --></button>
           <button class="chip" data-kind="answer">「怎么连接手机？」<!-- Q020 --></button>
@@ -428,12 +499,15 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
           <button class="chip" data-kind="b-fake">「请问这个是正品吗？」<!-- Q100 --></button>
         </div>
       </div>
-      <div class="inputbar"><input id="chatInput" placeholder="输入你的问题"><button id="sendBtn">发送</button></div>
-      <div class="foot" style="padding-top:6px;padding-bottom:12px">个人作品集项目，非 usmile 官方，未上线</div>
+      <div class="chatfoot">
+        <div class="inputbar"><input id="chatInput" placeholder="请描述你的问题…"><button id="sendBtn" aria-label="发送">➤</button></div>
+        <div class="inputnote">AI 建议仅供参考，不能代替牙医诊断；出血、肿胀请就医</div>
+        <div class="foot" style="padding-top:4px;padding-bottom:12px">个人作品集项目，非 usmile 官方，未上线</div>
+      </div>
     </section>
 
     <!-- 9 安全边界 -->
-    <section class="screen" id="s-boundary" data-title="这个问题需要转交">
+    <section class="screen" id="s-boundary" data-eyebrow="安全边界" data-title="这个问题需要转交">
       <div class="tabs">
         <button data-tab="medical">就医提示</button>
         <button data-tab="service">转官方客服</button>
@@ -503,8 +577,12 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     if(!$('#s-'+name)) name='home';
     $$('.screen').forEach(function(s){s.classList.remove('on')});
     var scr = $('#s-'+name); scr.classList.add('on');
-    $('#navTitle').textContent = scr.dataset.title;
-    $('#backBtn').style.visibility = name==='home' ? 'hidden' : 'visible';
+    $('#phone').dataset.screen = name;
+    $('#navEyebrow').textContent = scr.dataset.eyebrow || '';
+    $('#navEyebrow').style.display = scr.dataset.eyebrow ? 'block' : 'none';
+    if(name==='home') $('#navTitle').innerHTML = '<span class="mark">✦</span>AI 护齿助手<span class="pill">作品集原型</span>';
+    else $('#navTitle').textContent = scr.dataset.title;
+    $('#backBtn').style.display = name==='home' ? 'none' : 'block';
     $$('#sideNav a').forEach(function(a){a.classList.toggle('on', a.getAttribute('href')==='#'+name)});
     if(name==='quiz') renderQuiz();
     if(name==='rec') renderRec(arg);
@@ -518,6 +596,8 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
   window.addEventListener('hashchange', function(){ history_.push(location.hash); show(location.hash.slice(1)); });
   $('#backBtn').onclick = function(){ history.length>1 ? history.back() : go('home'); };
   document.addEventListener('click', function(e){
+    var a = e.target.closest('[data-ask]');
+    if(a){ go('chat'); setTimeout(function(){ $('#exampleChips [data-kind='+a.dataset.ask+']').click(); }, 0); return; }
     var t = e.target.closest('[data-go]'); if(!t) return;
     if(t.dataset.quizStep) { qi = +t.dataset.quizStep; }
     if(t.dataset.go==='quiz' && !t.dataset.quizStep && t.closest('#s-boundary,#s-home')) { qi = 0; }
@@ -540,11 +620,11 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
   function plain(html){var d=document.createElement('div');d.innerHTML=html;$$('.tag',d).forEach(function(x){x.remove()});return d.textContent.trim()}
   function renderQuiz(){
     var q = Q[qi];
-    $('#qStep').textContent = '第 '+(qi+1)+' / 5 题';
-    $('#qBar').style.width = ((qi+1)*20)+'%';
+    $('#qStep').textContent = '0'+(qi+1)+' / 05';
+    $('#qSegs').innerHTML = [0,1,2,3,4].map(function(k){ return '<i'+(k<=qi?' class="on"':'')+'></i>'; }).join('');
     $('#qTitle').textContent = q.t; $('#qHint').textContent = q.hint;
     $('#qOpts').innerHTML = q.opts.map(function(o,i){
-      return '<button class="opt'+(q.multi?' multi':'')+(ans[qi].indexOf(i)>=0?' sel':'')+'" data-i="'+i+'"><span class="box"></span><span>'+o+'</span></button>';
+      return '<button class="opt'+(q.multi?' multi':'')+(ans[qi].indexOf(i)>=0?' sel':'')+'" data-i="'+i+'"><span class="badge b'+i+'">'+'ABCDE'[i]+'</span><span class="ot">'+o+'</span><span class="box"></span></button>';
     }).join('');
     $('#qPrev').style.visibility = qi===0 ? 'hidden':'visible';
     $('#qNext').textContent = qi===4 ? '看推荐' : '下一题';
@@ -577,9 +657,11 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
     var picks = [];
     [1,2,3].forEach(function(k){ ans[k].forEach(function(i){ if(!(k===1 && i===4)) picks.push(plain(Q[k].opts[i])); }); });
     if(!picks.length) picks.push(ans[4][0]===0 ? '第一次用电动牙刷' : '你的预算');
-    $('#reasons').innerHTML = picks.slice(0,3).map(function(p,i){
-      return '<div class="reason"><span class="n">'+(i+1)+'</span><div><div>对应你选的“'+p+'”</div><div class="small">依据：'+PH('官方参数')+'　出处：'+PH()+'</div></div></div>';
+    $('#reasons').innerHTML = picks.slice(0,3).map(function(p){
+      return '<div class="w"><i>✓</i>'+p+'</div>';
     }).join('');
+    $('#reasons').style.gridTemplateColumns = 'repeat('+Math.min(picks.length,3)+',1fr)';
+    $('#basedOn').textContent = '每格对应你在测评里的选项：' + picks.slice(0,3).join(' · ');
     var sens = ans[1].indexOf(0)>=0, newbie = ans[4][0]===0;
     $('#headType').textContent = sens ? '软毛类 · ' : '';
     var c = '<b>使用注意</b><br>';
@@ -660,7 +742,7 @@ input[type=date]{font:inherit;padding:8px 10px;border:1.5px solid var(--line);bo
       + '<div class="feedback"><button>已解决</button><button>没解决</button></div>';
   }
   function enterChat(arg){
-    if(arg==='smart'||arg==='basic'||arg==='presale') setWho(arg);
+    setWho(arg==='smart'||arg==='basic'||arg==='presale' ? arg : who);
     if(!chatInited){ chatInited=true; addMsg('bot','你好，我可以回答使用方法、刷头、适用人群等问题，回答会标注出处。<br><span class="small">问题不清楚时我会先问你一句。</span>'); }
     if(arg==='demo' && $$('#chatBox .msg').length<3){ var c=$('#exampleChips [data-kind=followup]'); c.click(); setTimeout(function(){ var m=$('#chatBox [data-model]'); if(m) m.click(); },10); }
   }

@@ -42,10 +42,10 @@ def main():
         # 按真实流程点击：首页 → 已经买了（选型号）；首页 → 还没买 → 测评 5 题 → 推荐卡
         page.goto(PAGE + "#home")
         shot("01_home")
-        page.click("text=已经买了，教我用")
+        page.click("#s-home .tile.green")
         shot("02_route")
         page.goto(PAGE + "#home")
-        page.click("text=还没买，帮我选")
+        page.click("#s-home .tile.blue")
         shot("03a_quiz_q1_required")
         page.click("#qOpts .opt >> nth=0")
         page.click("#qNext")
