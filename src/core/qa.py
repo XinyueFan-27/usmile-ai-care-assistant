@@ -99,7 +99,7 @@ def _no_evidence(retriever_label: str) -> dict:
                  actions=["contact_service"], retriever=retriever_label)
 
 
-def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str, str]:
+def _generate(question: str, hits, model, device_summary, use_llm, profile=None) -> tuple[str, str]:
     """返回 (回答, mode)。mode 为 llm:<模型名> / fallback / mock。回答为 NO_EVIDENCE 表示资料不足。"""
     from src import llm  # 延迟导入
     if use_llm and llm.has_key():
@@ -107,6 +107,9 @@ def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str,
         user = f"资料区：\n{material}\n\n"
         if model:
             user += f"用户的型号：{model}\n"
+        if profile:
+            # 测评第 2–5 题（含自己填写），不含预算（D46 ⑥）；只用来判断哪些资料和用户相关，不是事实依据
+            user += f"用户在选购测评里说的情况（用户自述，不是资料，不能当作出处）：{profile}\n"
         if device_summary:
             user += f"用户牙刷数据摘要（{SIMULATED_LABEL}）：{device_summary}\n"
         user += f"用户问题：{question}"
@@ -127,8 +130,15 @@ def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str,
     return "\n".join(lines), "mock"
 
 
+def confirmed_models(catalog: Catalog) -> list[str]:
+    """App 支持情况已确认的型号（追问选项用，D46 ⑫）；属性表缺失时用知识库里有详细资料的型号。"""
+    names = [m.name for m in catalog.models if m.app_status in ("smart", "basic")]
+    return names or kb_model_names()
+
+
 def answer(question: str, catalog: Catalog, model: str | None = None, followup_done: bool = False,
-           device_summary: dict | None = None, use_llm: bool = True, index=None, k: int = 4) -> dict:
+           device_summary: dict | None = None, use_llm: bool = True, index=None, k: int = 4,
+           profile: dict | None = None) -> dict:
     question = (question or "").strip()
     if not question:
         return _base("invalid", "请输入问题。")
@@ -145,7 +155,7 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
 
     # 2. 需要型号却不知道 → 追问一次
     if not model and not followup_done and re.search(NEEDS_MODEL, question, re.I):
-        return _base("followup", FOLLOWUP_TEXT, followup_options=names + ["我不确定"])
+        return _base("followup", FOLLOWUP_TEXT, followup_options=confirmed_models(catalog) + ["我不确定"])
 
     # 3. 检索
     index = index or default_index()
@@ -155,7 +165,7 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
         return _no_evidence(index.label)
 
     # 4. 生成
-    text, mode = _generate(question, hits, model, device_summary, use_llm)
+    text, mode = _generate(question, hits, model, device_summary, use_llm, profile)
     mode, _, llm_model = mode.partition(":")
     # 出处编号：[1]、[2, 4]、[2，4] 都认
     nums = [n for grp in re.findall(r"\[([\d,，、\s]+)\]", text) for n in re.findall(r"\d+", grp)]

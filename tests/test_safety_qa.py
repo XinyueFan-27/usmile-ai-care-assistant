@@ -102,3 +102,14 @@ def test_default_claim_needs_source(fake_catalog, fake_index, monkeypatch):
     """测试用假数据：假知识块里没写“默认”，模型说“默认模式为测试呵护”→ 不采用。"""
     monkeypatch.setattr(qa, "_generate", lambda *a: ("测试型号A 默认模式为测试呵护 [1]。", "llm:测试模型"))
     assert qa.answer("测试型号A 续航", fake_catalog, index=fake_index).get("dropped") == "claim"
+
+
+def test_self_reported_bleeding_goes_to_doctor():
+    """D46 ⑩：用户说自己出血一律弹就医提示（评论原文 R146）。"""
+    assert safety.classify("用了几次都牙龈出血了") == "medical"
+
+
+def test_followup_options_only_confirmed(fake_catalog, fake_index):
+    """D46 ⑫：追问选项只列 App 支持已确认的型号（测试用假数据：测试型号C 待核实，不列）。"""
+    r = qa.answer(Q["Q052"], fake_catalog, use_llm=False, index=fake_index)
+    assert "测试型号C" not in r["followup_options"] and "测试型号A" in r["followup_options"]

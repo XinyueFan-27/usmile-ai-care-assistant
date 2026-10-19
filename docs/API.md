@@ -1,7 +1,7 @@
-# Demo 后端接口说明（v0.1）
+# Demo 后端接口说明（v0.2）
 
 > 个人作品集项目，非 usmile 官方，未上线。
-> 这套接口是 Demo 的后端：Streamlit 前端（`app.py`）现在直接调用同一层函数（`src/core/service.py`）；以后换成微信小程序，只需要用小程序调用下面的 HTTP 接口，后端不用改。
+> 这套接口是 Demo 的后端。前端 `web/`（来自 Melody 定稿的 prototype/index.html，D46）通过下面的 HTTP 接口取数据；Streamlit 版（`app.py`）作为备用，直接调用同一层函数（`src/core/service.py`）。以后换成微信小程序，只需要小程序调用同样的接口，后端不用改。
 
 ## 启动
 
@@ -9,7 +9,11 @@
 .venv/bin/uvicorn src.api:app --port 8000
 ```
 
-启动后打开 http://127.0.0.1:8000/docs 可以在浏览器里直接试每个接口（FastAPI 自动生成）。
+启动后：
+- http://127.0.0.1:8000/ ：前端页面（`web/index.html`，模拟微信小程序）
+- http://127.0.0.1:8000/docs ：在浏览器里直接试每个接口（FastAPI 自动生成）
+
+所有接口都在 `/api` 下。
 
 ## 通用约定
 
@@ -24,19 +28,21 @@
 
 | 方法 | 路径 | 用途 | 对应 PRD |
 |---|---|---|---|
-| GET | `/health` | 运行状态、页脚、免责声明、是否 mock、检索方式 | — |
-| GET | `/quiz` | 5 道测评题和选项 | 2.3.2 |
-| POST | `/recommend` | 规则推荐 + 推荐理由 | 2.3.2、2.3.3 |
-| GET | `/models` | 购后选型号页的选项（智能款 / 基础款 / 待核实） | 2.3.8 |
-| POST | `/route` | 按型号分流 | 2.3.8 |
-| POST | `/setup` | 首次设置建议（基础款 / 不确定型号） | 2.3.4 |
-| POST | `/reminder` | 刷头更换日期 + 模拟订阅（基础款） | 2.3.7 |
-| POST | `/profile-sync` | 画像同步（模拟，小程序 → App） | 2.3.10 |
-| POST | `/ask` | 护齿问答（安全边界、追问、RAG、V2 模拟设备数据） | 2.3.5、2.3.6、2.3.9、2.3.11 |
+| GET | `/api/health` | 运行状态、页脚、免责声明、是否 mock、检索方式 | — |
+| GET | `/api/quiz` | 5 道测评题和选项 | 2.3.2 |
+| POST | `/api/recommend` | 规则推荐 + 推荐理由 | 2.3.2、2.3.3 |
+| GET | `/api/models` | 购后选型号页的选项（智能款 / 基础款 / 待核实） | 2.3.8 |
+| POST | `/api/route` | 按型号分流 | 2.3.8 |
+| POST | `/api/setup` | 首次设置建议（基础款 / 不确定型号） | 2.3.4 |
+| POST | `/api/reminder` | 刷头更换日期 + 模拟订阅（基础款） | 2.3.7 |
+| POST | `/api/profile-sync` | 画像同步（模拟，小程序 → App） | 2.3.10 |
+| POST | `/api/ask` | 护齿问答（安全边界、追问、RAG、V2 模拟设备数据） | 2.3.5、2.3.6、2.3.9、2.3.11 |
+| GET | `/api/sources` | 来源清单（编号 → 名称、链接，kb/sources.md） | — |
+| GET | `/api/kb/{chunk_id}` | 单条知识库要点 + 出处（前端固定内容用，如 App 下载说明） | — |
 
 ## 详细说明
 
-### POST /recommend
+### POST /api/recommend
 
 请求：
 
@@ -53,15 +59,15 @@
 | `invalid` | 答案不合法（没选预算、互斥选项同时选） | 显示 `errors` |
 | `pending_kb` | 型号属性表缺失 | 显示 `message`（含【待知识库】） |
 
-`main` / `backup` 字段：`model`、`price`（京东官方自营店标价）、`price_sources`、`app_support`、`battery_days`、`brush_head`（`text` + `sources`）、`score`（命中选项数）、`matched`（每个命中选项的字段、原值、出处）、`reasons`（`reasons` 列表 + `by`：`llm` 或 `template` + `llm_model`）。
+`main` / `backup` 字段：`model`、`buy`（购买链接：有京东官方自营详情页的用详情页，否则用官网购买渠道页 S12，D46 ⑤）、`price`（京东官方自营店标价）、`price_sources`、`app_support`、`battery_days`、`brush_head`（`text` + `sources`）、`score`（命中选项数）、`matched`（每个命中选项的字段、原值、出处）、`reasons`（`reasons` 列表 + `by`：`llm` 或 `template` + `llm_model`）。
 
 规则：预算硬筛 → 按命中选项数打分 → 同分取价格低 → 再按型号名。大模型只写理由，不选型号；理由里的数字不在官方参数中就整组换成模板。
 
-### GET /models、POST /route
+### GET /api/models、POST /api/route
 
-`/models` 返回 `smart`（支持笑容加 App）、`basic`（官方确认不支持）、`unverified`（是否支持【待核实】，不放进两个名单）、`unsure`（“我不确定”）。
+`/api/models` 返回 `smart`（支持笑容加 App）、`basic`（官方确认不支持）、`unverified`（是否支持【待核实】，不放进两个名单）、`unsure`（“我不确定”）。
 
-`/route` 请求 `{"model": "P10"}`，返回 `path`（`smart` / `basic` / `unsure`）和 `features`：
+`/api/route` 请求 `{"model": "P10"}`，返回 `path`（`smart` / `basic` / `unsure`）和 `features`：
 
 | path | features | 说明 |
 |---|---|---|
@@ -69,24 +75,25 @@
 | `basic` | `setup`、`reminder`、`qa` | 显示首次设置、刷头提醒和问答 |
 | `unsure` | `setup_general`、`qa` | 型号不确定或 App 支持待核实：只给“通用建议” |
 
-### POST /setup
+### POST /api/setup
 
 请求 `{"model": "P10", "first_time": true, "sensitive": false}`。返回 `status`：`ok`（`items` 每项有 `name`、`text`、`sources`）/ `general`（标注“通用建议”）/ `not_applicable`（智能款，请去 App）。
 
-### POST /reminder
+### POST /api/reminder
 
 请求 `{"model": "P10", "start_date": "2026-10-18", "subscribe": false}`。返回 `cycle`（官方更换周期）、`next_date`、`subscribed`。智能款返回 `not_applicable`；周期缺失返回 `pending_kb`。订阅是模拟的，不发送真实消息。
 
-### POST /profile-sync
+### POST /api/profile-sync
 
 请求 `{"answers": {...}, "consent": true}`。只同步测评第 2–5 题（牙齿情况、最想解决的问题、想要的功能、是否新手），**不同步预算**；`consent=false` 返回 `declined` 且不同步；`already_synced=true` 返回 `already_synced`（只同步一次）。
 
-### POST /ask
+### POST /api/ask
 
 请求：
 
 ```json
-{"question": "续航多久呀", "model": null, "followup_done": false, "use_device_data": false}
+{"question": "续航多久呀", "model": null, "followup_done": false, "use_device_data": false,
+ "profile": {"q2": ["牙龈敏感或容易出血"], "q3": "护理牙龈", "q2_自己填写": "牙齿怕冷"}}
 ```
 
 返回 `type`：
@@ -99,7 +106,11 @@
 | `answer` | 正常回答：`citations`（知识块编号、标题、来源名称和链接、抓取日期）、`mode`（`llm` / `fallback` 大模型繁忙时的资料要点 / `mock`）、`llm_model`（实际用的模型，主模型限流时为备用模型）、`retriever`、`actions`（如 `go_app`）、`notices` |
 | `no_evidence` | 没有找到可靠官方资料，附官方客服入口 |
 
-所有返回都带 `disclaimer`。`use_device_data=true` 且型号是智能款时，附加 V2 模拟设备数据，返回 `simulated=true`，`notices` 第一条注明“参考了你的牙刷数据（模拟设备数据，仅作演示，非真实用户）”和更新时间。
+- `profile`（可选，D46 ⑥）：测评第 2–5 题和自己填写的内容，**不含预算**；只作为“用户自述情况”交给模型参考，不能当作出处。
+- `followup_options` 只列 App 支持已确认的型号 + “我不确定”（D46 ⑫）。
+- 用户说自己出血、肿胀，一律返回 `boundary` / `medical`（D46 ⑩）。
+
+所有返回都带 `disclaimer`。`use_device_data=true`、型号是智能款且问题和刷牙习惯相关（模式、力度、清洁、刷头等）时，附加 V2 模拟设备数据，返回 `simulated=true`，`notices` 第一条注明“参考了你的牙刷数据（模拟设备数据，仅作演示，非真实用户）”和更新时间。
 
 ## 换成小程序时要注意
 

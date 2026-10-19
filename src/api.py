@@ -1,17 +1,24 @@
-"""usmile AI 护齿助手 Demo 的 HTTP 接口（FastAPI）。
+"""usmile AI 护齿助手 Demo 的 HTTP 接口（FastAPI）+ 前端页面（web/）。
 
 个人作品集项目，非 usmile 官方，未上线。接口说明见 docs/API.md。
-启动：.venv/bin/uvicorn src.api:app --port 8000   （交互文档：http://127.0.0.1:8000/docs）
+启动：.venv/bin/uvicorn src.api:app --port 8000
+  - 前端：http://127.0.0.1:8000/        （web/index.html，模拟微信小程序）
+  - 接口：http://127.0.0.1:8000/api/... （交互文档：http://127.0.0.1:8000/docs）
 """
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+from pathlib import Path
+
+from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.core import service
 
-app = FastAPI(title="usmile AI 护齿助手 Demo API（个人作品集，非官方，未上线）", version="0.1.0")
+app = FastAPI(title="usmile AI 护齿助手 Demo API（个人作品集，非官方，未上线）", version="0.2.0")
+api = APIRouter(prefix="/api")
+WEB_DIR = Path(__file__).resolve().parents[1] / "web"
 
 
 class QuizAnswers(BaseModel):
@@ -54,40 +61,41 @@ class AskReq(BaseModel):
     question: str
     model: str | None = None
     followup_done: bool = Field(False, description="已经追问过一次型号时为 true，不再追问")
-    use_device_data: bool = Field(False, description="V2：附加模拟设备数据（仅智能款，仅作演示）")
+    use_device_data: bool = Field(False, description="V2：附加模拟设备数据（仅智能款、问题与刷牙习惯相关时，仅作演示）")
+    profile: dict | None = Field(None, description="测评第 2–5 题（可含 q2_custom 等自己填写的内容），不含预算；只作用户情况参考")
 
 
-@app.get("/health")
+@api.get("/health")
 def health():
     return {"ok": True, **service.meta()}
 
 
-@app.get("/quiz")
+@api.get("/quiz")
 def get_quiz():
     return service.get_quiz()
 
 
-@app.post("/recommend")
+@api.post("/recommend")
 def recommend(req: RecommendReq):
     return service.recommend(req.answers.model_dump(), explain=req.explain)
 
 
-@app.get("/models")
+@api.get("/models")
 def models():
     return service.model_options()
 
 
-@app.post("/route")
+@api.post("/route")
 def route(req: RouteReq):
     return service.route(req.model)
 
 
-@app.post("/setup")
+@api.post("/setup")
 def setup(req: SetupReq):
     return service.setup(req.model, req.first_time, req.sensitive, req.goal)
 
 
-@app.post("/reminder")
+@api.post("/reminder")
 def reminder(req: ReminderReq):
     try:
         return service.reminder(req.model, req.start_date, req.subscribe)
@@ -95,11 +103,28 @@ def reminder(req: ReminderReq):
         raise HTTPException(422, "start_date 格式应为 YYYY-MM-DD") from None
 
 
-@app.post("/profile-sync")
+@api.post("/profile-sync")
 def profile_sync(req: SyncReq):
     return service.profile_sync(req.answers.model_dump() if req.answers else None, req.consent, req.already_synced)
 
 
-@app.post("/ask")
+@api.post("/ask")
 def ask(req: AskReq):
-    return service.ask(req.question, req.model, req.followup_done, req.use_device_data)
+    return service.ask(req.question, req.model, req.followup_done, req.use_device_data, req.profile)
+
+
+@api.get("/sources")
+def sources():
+    """来源清单：编号 → 名称、链接（kb/sources.md）。"""
+    return service.sources()
+
+
+@api.get("/kb/{chunk_id}")
+def kb_note(chunk_id: str):
+    """单条知识库要点 + 出处（前端用于 App 下载、绑定说明等固定内容）。"""
+    return service.kb_note(chunk_id)
+
+
+app.include_router(api)
+if WEB_DIR.exists():
+    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

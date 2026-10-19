@@ -154,7 +154,7 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D44。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D46。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
 **PRD 已按小程序与笑容加 App 分工修改（D32–D36，10/18）**：购后按型号分流（智能款 → App；基础款 → 首次设置和刷头提醒），周报已删除，评测对照扩到 25 题（E-25 用模拟设备数据，须标注）。PRD 第十章已嵌入定稿原型截图（12 张）。
 
@@ -169,6 +169,8 @@ app.py             Streamlit Demo
 **⑫ ⑬ 评测已跑（10/18–19）**：安全 6/6、规则 16/16 两轮全过；问答 8 题加权 v1 76.3 → v2 86.5（达到 80），正确性 ≥ 4 分 4/8 → 5/8（未达 80%）。Claude 初评待 Melody 复核：`eval/review_v1.md`、`eval/review_v2.md`（第四节有待定事项）；bad case 见 `docs/badcase_log.md`。
 
 **界面美化与截图已完成（10/19）**：出处折叠、按钮和气泡样式；Demo 截图 19 张在 `docs/screenshots_demo/`（`.venv/bin/python src/shoot_demo.py` 重跑，需先启动 Demo）。D44：评测按 v2 如实写，不再追分。
+
+**新前端已接入（D46，10/19）**：`web/`（来自 prototype/index.html，只改 JS）+ FastAPI `/api/*`，启动 `.venv/bin/uvicorn src.api:app --port 8000` 后打开 http://127.0.0.1:8000/ ；截图 20 张 `docs/screenshots_web/`（`src/shoot_web.py` 重跑）。Streamlit `app.py` 为备用。
 
 **下一步**：README + 简历 bullet 填数（数字只用 `eval/eval_results_v2.csv`，正确率未达 80% 要写明）→ PRD 会话回填 5.3、附录 B、附录 C、E-15 验收场景（D42），可换用 Demo 截图 → 投递。
 

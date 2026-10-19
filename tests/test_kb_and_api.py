@@ -26,8 +26,24 @@ def test_api_smoke():
     from src.api import app
 
     c = TestClient(app)
-    assert c.get("/health").json()["footer"].startswith("个人作品集项目")
-    assert len(c.get("/quiz").json()["questions"]) == 5
-    r = c.post("/ask", json={"question": "请问这个是正品吗？"}).json()
+    assert c.get("/api/health").json()["footer"].startswith("个人作品集项目")
+    assert len(c.get("/api/quiz").json()["questions"]) == 5
+    r = c.post("/api/ask", json={"question": "请问这个是正品吗？"}).json()
     assert r["type"] == "boundary"
-    assert c.post("/reminder", json={"start_date": "bad"}).status_code == 422
+    assert c.post("/api/reminder", json={"start_date": "bad"}).status_code == 422
+
+
+def test_web_page_and_buy_link():
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from src.api import app
+    from src.core import service
+
+    c = TestClient(app)
+    page = c.get("/")
+    assert page.status_code == 200 and "AI 护齿助手 Demo" in page.text  # web/index.html
+    assert "S01" in c.get("/api/sources").json()
+    # D46 ⑤：有京东官方自营详情页的用详情页，其余用官网购买渠道页
+    assert "item.jd.com" in service.buy_link("Y30")["url"]
+    assert service.buy_link("Y50")["source"] == "S12"
