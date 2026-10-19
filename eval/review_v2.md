@@ -2,7 +2,7 @@
 
 > 个人作品集项目，非 usmile 官方，未上线。
 > 2026-10-19 用最终代码完整跑一次：主模型 glm-4.7-flash，被限流时换备用 GLM-4-Flash（D41，本轮 8 道问答题中 5 道用了备用模型）；检索 bge-small-zh + FAISS；评测长重试，生成随机度 0。
-> 打分：Claude 初评，**待 Melody 复核**（改 `eval/eval_results_v2.csv` 的分数列）。v1 的 E-05 初评判错，已更正（见 `eval/review_v1.md`）。
+> 打分：Claude 初评，**Melody 2026-10-19 复核确认，未改分**（D50）。v1 的 E-05 初评判错，已更正（见 `eval/review_v1.md`）。
 
 ## 一、v1 → v2 对比
 

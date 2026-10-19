@@ -166,7 +166,7 @@ app.py             Streamlit Demo
 
 **⑪ Demo 骨架已完成（D40，10/18）**：后端核心 `src/core/`（规则推荐、分流、安全边界、bge + FAISS 检索、GLM 问答、刷头提醒、画像同步、V2 模拟设备数据），对外只走 `src/core/service.py`；HTTP 接口 `src/api.py`（说明 `docs/API.md`，启动 `.venv/bin/uvicorn src.api:app --port 8000`）；前端 `.venv/bin/streamlit run app.py`；测试 `.venv/bin/python -m pytest`（30 个，假数据只在 `tests/`）。没有 Key 时自动 mock 并在界面标明。方法和已知问题见 METHODS 第 11 步。
 
-**⑫ ⑬ 评测已跑（10/18–19）**：安全 6/6、规则 16/16 两轮全过；问答 8 题加权 v1 76.3 → v2 86.5（达到 80），正确性 ≥ 4 分 4/8 → 5/8（未达 80%）。Claude 初评待 Melody 复核：`eval/review_v1.md`、`eval/review_v2.md`（第四节有待定事项）；bad case 见 `docs/badcase_log.md`。
+**⑫ ⑬ 评测已跑（10/18–19）**：安全 6/6、规则 16/16 两轮全过；问答 8 题加权 v1 76.3 → v2 86.5（达到 80），正确性 ≥ 4 分 4/8 → 5/8（未达 80%）。v2 分数 Melody 10/19 复核确认（D50）；v1 为 Claude 初评基线：`eval/review_v1.md`、`eval/review_v2.md`；bad case 见 `docs/badcase_log.md`。
 
 **界面美化与截图已完成（10/19）**：出处折叠、按钮和气泡样式；Demo 截图 19 张在 `docs/screenshots_demo/`（`.venv/bin/python src/shoot_demo.py` 重跑，需先启动 Demo）。D44：评测按 v2 如实写，不再追分。
 
@@ -174,7 +174,7 @@ app.py             Streamlit Demo
 
 **⑭ 收尾（10/19）**：PRD 附录 C 已完成（af18605）；README 已重写（da95553）；推送前检查通过（见 METHODS 第 14 步）。
 
-**下一步**：① Melody 复核 `eval/eval_results_v2.csv` 的 8 道问答分数（`eval/review_v2.md` 第四节），有改动就重算并同步 README、PRD 8.6、METHODS 第 14 步的简历 bullet；② Melody 在 GitHub 建空的公开仓库 `usmile-ai-care-assistant` 并确认后，再 `git remote add` + 推送（本机没有 gh）；③ 投递。
+**下一步**：① ~~复核评测 v2 分数~~（已完成，D50）；② Melody 在 GitHub 建空的公开仓库 `usmile-ai-care-assistant` 并确认后，再 `git remote add` + 推送（本机没有 gh）；③ 投递。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
