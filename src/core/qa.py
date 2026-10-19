@@ -18,6 +18,7 @@ from . import safety
 from .catalog import Catalog
 from .config import DISCLAIMER, FALLBACK_LABEL, MOCK_LABEL, PENDING, SIMULATED_LABEL
 from .kb import Chunk, chunk_by_id, citation, default_chunks
+from .llm_router import generate
 from .retriever import THRESHOLD, default_index
 
 FOLLOWUP_TEXT = "你用的是哪一款？"
@@ -28,7 +29,7 @@ NO_EVIDENCE = "NO_EVIDENCE"
 SYSTEM = """你是 usmile 电动牙刷的使用助手，只依据“资料区”的内容回答用户问题。
 规则：
 1. 结论在前，200 字以内，简单中文。每个事实后面用 [编号] 标出资料编号，例如 [1]。
-2. 资料区里没有依据的内容不要回答；如果资料不足以回答，只输出 NO_EVIDENCE。
+2. 资料区里没有依据的内容不要回答。资料能回答问题的全部或一部分时，就回答这一部分；只有资料和问题完全无关时，才只输出 NO_EVIDENCE。
 3. 只说资料里明确写到的内容，资料没写的不要推断（例如资料没说能不能切换，就不要说能或不能）。
 4. 不诊断、不推荐药物；涉及不适时提示看牙医。不评价其他品牌，不承诺功效，不编造参数和型号。"""
 DEVICE_RULE = """
@@ -71,7 +72,7 @@ def _rerank(hits: list[tuple[Chunk, float]], model: str | None) -> list[tuple[Ch
 
 def _base(kind: str, answer: str, **kw) -> dict:
     return {"type": kind, "answer": answer, "citations": [], "actions": [], "notices": [],
-            "mode": "rule", "retriever": None, "followup_options": [], "disclaimer": DISCLAIMER,
+            "mode": "rule", "llm_model": None, "retriever": None, "followup_options": [], "disclaimer": DISCLAIMER,
             "simulated": False, **kw}
 
 
@@ -84,7 +85,7 @@ def _no_evidence(retriever_label: str) -> dict:
 
 
 def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str, str]:
-    """返回 (回答, mode)。回答为 NO_EVIDENCE 表示资料不足。"""
+    """返回 (回答, mode)。mode 为 llm:<模型名> / fallback / mock。回答为 NO_EVIDENCE 表示资料不足。"""
     from src import llm  # 延迟导入
     if use_llm and llm.has_key():
         material = "\n\n".join(f"[{i}] {c.title}（适用：{c.applies_to}）\n{c.body}" for i, (c, _) in enumerate(hits, 1))
@@ -96,11 +97,13 @@ def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str,
         user += f"用户问题：{question}"
         try:
             system = SYSTEM + (DEVICE_RULE if device_summary else "")
-            reply = (llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}],
-                             retries=1, timeout=20) or "").strip()
+            reply, used = generate([{"role": "system", "content": system}, {"role": "user", "content": user}])
+            reply = reply.strip()
             # 模型有时在正常回答后面再附一个 NO_EVIDENCE：有正文就去掉标记，只有标记才算没有依据
             body = reply.replace(NO_EVIDENCE, "").strip()
-            return (body or NO_EVIDENCE), "llm"
+            if not re.sub(r"[\s。，.,！!？?]", "", body):  # 只剩标点也算没有依据
+                body = ""
+            return (body or NO_EVIDENCE), f"llm:{used}"
         except Exception:  # noqa: BLE001  模型服务不可用（如限流）时退回资料要点，界面如实标明
             lines = [FALLBACK_LABEL] + [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]
             return "\n".join(lines), "fallback"
@@ -139,11 +142,14 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
     # 4. 生成
     text, mode = _generate(question, hits, model, device_summary, use_llm)
     if text.startswith(NO_EVIDENCE):
-        return _no_evidence(index.label)
-    used = sorted({int(n) for n in re.findall(r"\[(\d+)\]", text) if 1 <= int(n) <= len(hits)})
+        return {**_no_evidence(index.label), "llm_model": mode.partition(":")[2] or None}
+    # 出处编号：[1]、[2, 4]、[2，4] 都认
+    nums = [n for grp in re.findall(r"\[([\d,，、\s]+)\]", text) for n in re.findall(r"\d+", grp)]
+    used = sorted({int(n) for n in nums if 1 <= int(n) <= len(hits)})
     if not used:  # 有结论必须有出处；模型没标出处就不采用
         return _no_evidence(index.label)
-    res = _base("answer", text, mode=mode, retriever=index.label,
+    mode, _, llm_model = mode.partition(":")
+    res = _base("answer", text, mode=mode, llm_model=llm_model or None, retriever=index.label,
                 citations=[citation(hits[i - 1][0]) for i in used])
 
     # 5. 附加规则

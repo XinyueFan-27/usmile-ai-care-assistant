@@ -97,10 +97,18 @@ def cite_html(citations: list[dict]) -> str:
     return '<div class="src">出处：<br>' + "<br>".join(rows) + "</div>"
 
 
+def model_note(model: str | None) -> str:
+    """注明这条内容由哪个模型生成；用了备用模型时写明（D41）。"""
+    if not model:
+        return ""
+    tag = "（主模型限流，已换用备用模型）" if model != META["llm_primary"] else ""
+    return f'<div class="src">由 {esc(model)} 生成{tag}</div>'
+
+
 def footer():
     st.markdown(
         f'<div class="disc">{META["disclaimer"]}</div><div class="foot">{META["footer"]}<br>'
-        f'模型：{"GLM（" + META["llm_mode"] + "）" if META["llm_mode"] == "llm" else "mock 模式"}｜检索：{META["retriever"]}</div>',
+        f'模型：{META["llm_primary"] + "（备用 " + META["llm_fallback"] + "）" if META["llm_mode"] == "llm" else "mock 模式"}｜检索：{META["retriever"]}</div>',
         unsafe_allow_html=True,
     )
 
@@ -173,6 +181,7 @@ def model_card(card: dict, title: str):
     html += '<div style="margin-top:8px"><b>推荐理由</b>' + ("（模板文案）" if reasons.get("by") == "template" else "（大模型根据官方参数撰写）") + "</div>"
     for r in reasons.get("reasons", []):
         html += f'<div>· {esc(r["reason"])}</div>{src_html(r.get("sources", []))}'
+    html += model_note(reasons.get("llm_model"))
     st.markdown(html + "</div>", unsafe_allow_html=True)
 
 
@@ -362,6 +371,7 @@ def render_answer(item: dict, k: int):
     for n in res.get("notices", []):
         html += f'<div style="margin-top:6px;color:#b25e00">· {esc(n)}</div>'
     html += cite_html(res.get("citations", []))
+    html += model_note(res.get("llm_model"))
     html += f'<div class="disc">{res["disclaimer"]}</div></div>'
     st.markdown(html, unsafe_allow_html=True)
     if "go_app" in res.get("actions", []):

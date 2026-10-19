@@ -12,6 +12,7 @@ from functools import lru_cache
 
 from . import care, device_sim, qa, quiz, reasons, routing
 from .catalog import Catalog, load_catalog
+from .llm_router import fallback_model
 from .config import DISCLAIMER, FOOTER, MOCK_LABEL, SIMULATED_LABEL
 
 
@@ -32,6 +33,8 @@ def meta() -> dict:
         "footer": FOOTER,
         "disclaimer": DISCLAIMER,
         "llm_mode": "llm" if llm_enabled() else "mock",
+        "llm_primary": os.getenv("ZHIPU_MODEL", ""),
+        "llm_fallback": fallback_model() or "",
         "mock_label": MOCK_LABEL,
         "simulated_label": SIMULATED_LABEL,
         "retriever": default_index().label,

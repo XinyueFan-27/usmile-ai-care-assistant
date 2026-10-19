@@ -17,6 +17,7 @@
 - 所有官方信息（型号、价格、参数、出处）只来自 `kb/`；没有依据的字段返回 `"【待知识库】"`，前端原样显示，不得补全。
 - `sources` 是来源编号列表（如 `"S02"`），名称和链接见 `kb/sources.md`；问答的 `citations` 已带名称和链接。
 - 每个页面都要显示 `GET /health` 返回的 `footer`（非官方说明）和 `disclaimer`（免责声明）。
+- 主模型（`ZHIPU_MODEL`）被限流时自动换备用模型（`ZHIPU_FALLBACK_MODEL`），返回里的 `llm_model` 写明实际用的模型；`GET /health` 返回 `llm_primary` 和 `llm_fallback`。
 - 没有配置大模型 Key 时 `llm_mode = "mock"`：问答返回检索到的资料要点，并在回答开头带 mock 标注；推荐理由用模板文案（`by = "template"`）。
 
 ## 接口一览
@@ -52,7 +53,7 @@
 | `invalid` | 答案不合法（没选预算、互斥选项同时选） | 显示 `errors` |
 | `pending_kb` | 型号属性表缺失 | 显示 `message`（含【待知识库】） |
 
-`main` / `backup` 字段：`model`、`price`（京东官方自营店标价）、`price_sources`、`app_support`、`battery_days`、`brush_head`（`text` + `sources`）、`score`（命中选项数）、`matched`（每个命中选项的字段、原值、出处）、`reasons`（`reasons` 列表 + `by`：`llm` 或 `template`）。
+`main` / `backup` 字段：`model`、`price`（京东官方自营店标价）、`price_sources`、`app_support`、`battery_days`、`brush_head`（`text` + `sources`）、`score`（命中选项数）、`matched`（每个命中选项的字段、原值、出处）、`reasons`（`reasons` 列表 + `by`：`llm` 或 `template` + `llm_model`）。
 
 规则：预算硬筛 → 按命中选项数打分 → 同分取价格低 → 再按型号名。大模型只写理由，不选型号；理由里的数字不在官方参数中就整组换成模板。
 
@@ -95,7 +96,7 @@
 | `boundary` | 命中安全边界（`category`：`urgent` 急症 / `medical` 医疗 / `service` 售后 / `authenticity` 真伪 / `competitor` 竞品），不调用大模型 |
 | `subjective` | 主观口碑问题，不下结论 |
 | `followup` | 需要型号：显示 `answer`（“你用的是哪一款？”）和 `followup_options`；用户选完后带 `model` 和 `followup_done=true` 再调一次 |
-| `answer` | 正常回答：`citations`（知识块编号、标题、来源名称和链接、抓取日期）、`mode`（`llm` / `mock`）、`retriever`、`actions`（如 `go_app`）、`notices` |
+| `answer` | 正常回答：`citations`（知识块编号、标题、来源名称和链接、抓取日期）、`mode`（`llm` / `fallback` 大模型繁忙时的资料要点 / `mock`）、`llm_model`（实际用的模型，主模型限流时为备用模型）、`retriever`、`actions`（如 `go_app`）、`notices` |
 | `no_evidence` | 没有找到可靠官方资料，附官方客服入口 |
 
 所有返回都带 `disclaimer`。`use_device_data=true` 且型号是智能款时，附加 V2 模拟设备数据，返回 `simulated=true`，`notices` 第一条注明“参考了你的牙刷数据（模拟设备数据，仅作演示，非真实用户）”和更新时间。

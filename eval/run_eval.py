@@ -84,7 +84,7 @@ def run_case(cid: str, s) -> dict:
     """返回 {input, input_id, output, citations, mode, auto, note}。auto 为 自动通过 / 自动不通过 / 人工评分。"""
     from src.core import quiz
 
-    r = {"input": "", "input_id": "", "output": "", "citations": "", "mode": "rule", "auto": "人工评分", "note": ""}
+    r = {"input": "", "input_id": "", "output": "", "citations": "", "mode": "rule", "llm_model": "", "auto": "人工评分", "note": ""}
 
     def ask(qid=None, text=None, **kw):
         q = QUOTES[qid] if qid else text
@@ -93,6 +93,7 @@ def run_case(cid: str, s) -> dict:
         r["output"] = res["answer"]
         r["citations"] = "；".join(c["chunk_id"] for c in res["citations"])
         r["mode"] = res.get("mode", "rule")
+        r["llm_model"] = res.get("llm_model") or ""
         return res
 
     if cid == "E-01":
@@ -131,6 +132,7 @@ def run_case(cid: str, s) -> dict:
         rs = res["main"]["reasons"]
         r["input"], r["input_id"], r["output"] = json.dumps(a, ensure_ascii=False), "构造", " / ".join(x["reason"] for x in rs["reasons"])
         r["mode"] = rs["by"]
+        r["llm_model"] = rs.get("llm_model", "")
         r["citations"] = "；".join(sorted({i for x in rs["reasons"] for i in x.get("sources", [])}))
         has = any(x.get("option") == "续航长" for x in rs["reasons"])
         r["auto"], r["note"] = ("人工评分", f"理由条数 {len(rs['reasons'])}，含续航长={has}；数字是否都在官方参数里需人工复核")
@@ -175,6 +177,7 @@ def run_case(cid: str, s) -> dict:
         r["output"] = f"第 1 轮：{first['answer']}｜第 2 轮（选 {BASIC}）：{second['answer']}"
         r["citations"] = "；".join(c["chunk_id"] for c in second["citations"])
         r["mode"] = second.get("mode", "rule")
+        r["llm_model"] = second.get("llm_model") or ""
         r["auto"], r["note"] = ok(first["type"] == "followup" and second["type"] == "answer" and bool(second["citations"]),
                                   "第 1 轮只追问；第 2 轮按型号回答并有出处（内容正确性另需人工看）")
     elif cid == "E-15":
@@ -230,6 +233,8 @@ def main():
     args = ap.parse_args()
     if args.mock:
         os.environ["DEMO_FORCE_MOCK"] = "1"
+    else:
+        os.environ["DEMO_LLM_PATIENT"] = "1"  # 评测不赶时间：按 src/llm.py 默认长重试，减少限流造成的兜底
 
     from src.core import service as s
 
@@ -238,7 +243,7 @@ def main():
     print(f"模型：{meta['llm_mode']}｜检索：{meta['retriever']}｜属性表：{meta['model_attributes']}")
     cases = load_mapping()
     fields = ["id", "prd", "scene", "eval_type", "expected", "input", "input_id", "output", "citations", "mode",
-              "retriever", "auto_check", "auto_note",
+              "llm_model", "retriever", "auto_check", "auto_note",
               "score_correctness", "score_citation", "score_safety", "score_usefulness", "safety_violation",
               "weighted_total", "reviewer_note"]
     rows = []
@@ -246,9 +251,9 @@ def main():
         r = run_case(c["id"], s)
         rows.append({**{k: c[k] for k in ("id", "prd", "scene", "eval_type", "expected")},
                      "input": r["input"], "input_id": r["input_id"], "output": r["output"].replace("\n", " "),
-                     "citations": r["citations"], "mode": r["mode"], "retriever": meta["retriever"],
+                     "citations": r["citations"], "mode": r["mode"], "llm_model": r["llm_model"], "retriever": meta["retriever"],
                      "auto_check": r["auto"], "auto_note": r["note"],
-                     **{k: "" for k in fields[13:]}})
+                     **{k: "" for k in fields[14:]}})
         print(f"{c['id']}  {r['auto']:<6}  {r['note'][:60]}")
     out = Path(args.out)
     with out.open("w", encoding="utf-8-sig", newline="") as f:

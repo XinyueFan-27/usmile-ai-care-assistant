@@ -60,3 +60,10 @@ def test_reason_check_rejects_invented_numbers(fake_catalog):
     assert not reasons.check_reasons([{"reason": "续航 999 天"}, {"reason": "有呵护模式"}], m, fake_catalog)
     assert not reasons.check_reasons([{"reason": "比测试型号B 更好"}, {"reason": "有呵护模式"}], m, fake_catalog)
     assert not reasons.check_reasons([{"reason": "只有一条"}], m, fake_catalog)
+
+
+def test_citation_formats_and_punctuation_only(fake_catalog, fake_index, monkeypatch):
+    """模型回复的几种写法（测试用假数据）：[1, 2] 合并出处能识别；只剩标点算没有依据。"""
+    monkeypatch.setattr(qa, "_generate", lambda *a: ("测试回答 [1, 2]。", "llm:测试模型"))
+    r = qa.answer("测试型号A 续航", fake_catalog, index=fake_index)
+    assert r["type"] == "answer" and len(r["citations"]) == 2 and r["llm_model"] == "测试模型"
