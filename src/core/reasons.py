@@ -40,6 +40,13 @@ def check_reasons(reasons: list, model: ModelInfo, catalog: Catalog) -> bool:
             return False
         if any(num not in facts for num in re.findall(r"\d+(?:\.\d+)?", text)):
             return False
+        # 续航数字只认 battery_days 字段（v1 bad case 4：把京东规格表的“180天以上”当成了续航）
+        if "续航" in text:
+            days = re.findall(r"(\d+)\s*天", text)
+            if days and any(d != model.get("battery_days") for d in days):
+                return False
+        if any(w in text for w in ("有效清洁", "彻底清洁", "美白", "治疗", "预防", "根治")):  # 不承诺功效
+            return False
         for other in catalog.names():
             if other != model.name and other in text.replace(model.name, ""):
                 return False

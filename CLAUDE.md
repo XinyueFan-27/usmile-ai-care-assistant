@@ -129,7 +129,7 @@ app.py             Streamlit Demo
 | 10/16 | 数据采集 | data/raw/ 三个文件 | ✅ 完成 |
 | 10/17 | ① 清洗 → ② 确认标签表 → ③ LLM 打标签 → ④ 抽检 → ⑤ 存入 SQLite + SQL 分析 → ⑥ 痛点矩阵 | `reviews_clean.csv`、`reviews_tagged.csv`、`analysis.sql`、`pain_matrix.png`、3–5 条洞察 | ✅ 10/16 提前完成 |
 | 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、`prototype/`、`kb/`、`sources.md` | ⑦ ⑧ ⑨ ✅ 10/16 完成；⑩ ✅ 10/18 完成（`kb/`、`kb/sources.md`、`kb/model_attributes.csv`、`docs/kb_backfill.md`） |
-| 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 25 题评测 v1 | `app.py`、`src/core/`、`src/api.py`、`eval/run_eval.py`、`eval_results_v1.csv` | ⑪ 骨架 ✅ 10/18 完成（D40、D41）；⑫ v1 已跑，待 Melody 复核 |
+| 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 25 题评测 v1 | `app.py`、`src/core/`、`src/api.py`、`eval/run_eval.py`、`eval_results_v1.csv` | ⑪ 骨架 ✅ 10/18 完成（D40、D41）；⑫ v1、⑬ v2 已跑（D42、D43），待 Melody 复核 |
 | 10/20 上午 | ⑬ 根据 bad case 改一轮 → 评测 v2 → ⑭ README + 简历 bullet 填数 → 投递 | `eval_results_v2.csv`、README、简历 | |
 
 **优先级**：①–⑧ 必须完成（简历的硬证据）。⑪–⑬ 是加分项，来不及就在简历上只写已完成的部分。
@@ -154,7 +154,7 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D41。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D43。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
 **PRD 已按小程序与笑容加 App 分工修改（D32–D36，10/18）**：购后按型号分流（智能款 → App；基础款 → 首次设置和刷头提醒），周报已删除，评测对照扩到 25 题（E-25 用模拟设备数据，须标注）。PRD 第十章已嵌入定稿原型截图（12 张）。
 
@@ -166,9 +166,9 @@ app.py             Streamlit Demo
 
 **⑪ Demo 骨架已完成（D40，10/18）**：后端核心 `src/core/`（规则推荐、分流、安全边界、bge + FAISS 检索、GLM 问答、刷头提醒、画像同步、V2 模拟设备数据），对外只走 `src/core/service.py`；HTTP 接口 `src/api.py`（说明 `docs/API.md`，启动 `.venv/bin/uvicorn src.api:app --port 8000`）；前端 `.venv/bin/streamlit run app.py`；测试 `.venv/bin/python -m pytest`（30 个，假数据只在 `tests/`）。没有 Key 时自动 mock 并在界面标明。方法和已知问题见 METHODS 第 11 步。
 
-**⑫ 评测 v1 已跑（10/18）**：安全 6/6、规则 16/16 通过；问答 8 题加权平均 74.5（未达 80），正确性 ≥ 4 分的 3/8。Claude 初评待 Melody 复核，见 `eval/review_v1.md`（第三节有 3 件待定：分数、E-15 期望答案、E-03）。
+**⑫ ⑬ 评测已跑（10/18–19）**：安全 6/6、规则 16/16 两轮全过；问答 8 题加权 v1 76.3 → v2 86.5（达到 80），正确性 ≥ 4 分 4/8 → 5/8（未达 80%）。Claude 初评待 Melody 复核：`eval/review_v1.md`、`eval/review_v2.md`（第四节有待定事项）；bad case 见 `docs/badcase_log.md`。
 
-**下一步：⑬ 按 bad case 改一轮**（`docs/badcase_log.md` 5 条、`eval/review_v1.md` 第四节），再跑 `eval/run_eval.py --out eval/eval_results_v2.csv` 对比；之后界面美化、截图、README。
+**下一步**：Melody 复核 v2 分数 → 界面美化（出处改成卡片底部一行、可展开）→ 重新截图 → README + 简历 bullet 填数（数字只用 `eval/eval_results_v2.csv`）→ PRD 会话回填 5.3、附录 B、附录 C 和 E-15 验收场景（D42）。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 

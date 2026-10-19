@@ -16,7 +16,7 @@ import re
 
 from . import safety
 from .catalog import Catalog
-from .config import DISCLAIMER, FALLBACK_LABEL, MOCK_LABEL, PENDING, SIMULATED_LABEL
+from .config import DISCLAIMER, FALLBACK_LABEL, KB_SUMMARY_LABEL, MOCK_LABEL, PENDING, SIMULATED_LABEL
 from .kb import Chunk, chunk_by_id, citation, default_chunks
 from .llm_router import generate
 from .retriever import THRESHOLD, default_index
@@ -25,15 +25,30 @@ FOLLOWUP_TEXT = "你用的是哪一款？"
 NEEDS_MODEL = r"续航|电池|充一次|充满|充电多久|几档|档位|多少档|几个模式|有哪些模式|防水"
 DEVICE_SETTING = r"模式|档位|设置|默认|app|绑定|连接|扫动|力度|语音|壁纸|ota|升级"
 NO_EVIDENCE = "NO_EVIDENCE"
+# 功效类和“默认是…”类说法：回答里出现但引用的资料原文里没有，就不采用（PRD 2.5 不输出功效承诺）
+CLAIM_WORDS = ["能刷干净", "可以刷干净", "刷得干净", "清洁干净", "彻底清洁", "有效清洁", "有效去除", "美白", "治疗", "治愈",
+               "预防", "根治", "消炎"]
+DEFAULT_CLAIM = r"默认(模式|档位)?(是|为)"  # “默认是…”类结论也要原文写明“默认”（v1/v2 E-23）
+HIGH_SCORE = {"bge": 0.55, "tfidf": 0.25}
+BRUSH_HEAD_LIFE = r"刷头.{0,8}(多久|换|更换|炸毛|寿命|几个月)|炸毛"
 
 SYSTEM = """你是 usmile 电动牙刷的使用助手，只依据“资料区”的内容回答用户问题。
 规则：
 1. 结论在前，200 字以内，简单中文。每个事实后面用 [编号] 标出资料编号，例如 [1]。
 2. 资料区里没有依据的内容不要回答。资料能回答问题的全部或一部分时，就回答这一部分；只有资料和问题完全无关时，才只输出 NO_EVIDENCE。
-3. 只说资料里明确写到的内容，资料没写的不要推断（例如资料没说能不能切换，就不要说能或不能）。
-4. 不诊断、不推荐药物；涉及不适时提示看牙医。不评价其他品牌，不承诺功效，不编造参数和型号。"""
+3. 只说资料里明确写到的内容，资料没写的不要推断。问到资料没写的具体设置（例如默认是哪个模式、能不能切换或自定义），直接说“官方资料没有写这一点”，不要给出结论。
+4. 答案因型号不同时，分型号说明；不要把一个型号的参数说成另一个型号的。
+5. 每个 [编号] 只标在它真正支持的那句话后面。
+6. 不诊断、不推荐药物；涉及不适时提示看牙医。不评价其他品牌，不承诺功效，不编造参数和型号。"""
 DEVICE_RULE = """
-5. 下面提供了“用户牙刷数据摘要”（模拟设备数据）：只用来给出个性化提醒，并在开头写“参考了你的牙刷数据”；不复述完整报告，不根据数据推断疾病。"""
+7. 下面提供了“用户牙刷数据摘要”（模拟设备数据）：只用来给出个性化提醒，并在开头写“参考了你的牙刷数据”；不复述完整报告，不根据数据推断疾病。"""
+
+
+def unsupported_claim(text: str, cited: list[Chunk]) -> str | None:
+    source = " ".join(c.body for c in cited)
+    if re.search(DEFAULT_CLAIM, text) and "默认" not in source:
+        return "默认"
+    return next((w for w in CLAIM_WORDS if w in text and w not in source), None)
 
 
 def kb_model_names(chunks=None) -> list[str]:
@@ -100,7 +115,7 @@ def _generate(question: str, hits, model, device_summary, use_llm) -> tuple[str,
             reply, used = generate([{"role": "system", "content": system}, {"role": "user", "content": user}])
             reply = reply.strip()
             # 模型有时在正常回答后面再附一个 NO_EVIDENCE：有正文就去掉标记，只有标记才算没有依据
-            body = reply.replace(NO_EVIDENCE, "").strip()
+            body = reply.replace(NO_EVIDENCE, "").strip().lstrip("。，.,：:；; ")
             if not re.sub(r"[\s。，.,！!？?]", "", body):  # 只剩标点也算没有依据
                 body = ""
             return (body or NO_EVIDENCE), f"llm:{used}"
@@ -141,16 +156,28 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
 
     # 4. 生成
     text, mode = _generate(question, hits, model, device_summary, use_llm)
-    if text.startswith(NO_EVIDENCE):
-        return {**_no_evidence(index.label), "llm_model": mode.partition(":")[2] or None}
+    mode, _, llm_model = mode.partition(":")
     # 出处编号：[1]、[2, 4]、[2，4] 都认
     nums = [n for grp in re.findall(r"\[([\d,，、\s]+)\]", text) for n in re.findall(r"\d+", grp)]
     used = sorted({int(n) for n in nums if 1 <= int(n) <= len(hits)})
-    if not used:  # 有结论必须有出处；模型没标出处就不采用
-        return _no_evidence(index.label)
-    mode, _, llm_model = mode.partition(":")
-    res = _base("answer", text, mode=mode, llm_model=llm_model or None, retriever=index.label,
-                citations=[citation(hits[i - 1][0]) for i in used])
+    problem = None
+    if text.startswith(NO_EVIDENCE):
+        problem = "no_evidence"
+    elif not used:  # 有结论必须有出处；模型没标出处就不采用
+        problem = "no_citation"
+    elif unsupported_claim(text, [hits[i - 1][0] for i in used]):  # 功效词不在引用原文里（v2 bad case）
+        problem = "claim"
+    if problem:
+        if hits[0][1] >= HIGH_SCORE[index.kind]:
+            # 资料明显相关，只是模型没整理好：直接给官方资料要点并标明（不该拒却拒了，v1/v2 bad case）
+            res = _base("answer", "\n".join([KB_SUMMARY_LABEL] + [f"[{i}] {c.summary}" for i, (c, _) in enumerate(hits[:2], 1)]),
+                        mode="kb_summary", llm_model=llm_model or None, retriever=index.label,
+                        citations=[citation(c) for c, _ in hits[:2]], dropped=problem)
+        else:
+            res = {**_no_evidence(index.label), "llm_model": llm_model or None, "dropped": problem}
+    else:
+        res = _base("answer", text, mode=mode, llm_model=llm_model or None, retriever=index.label,
+                    citations=[citation(hits[i - 1][0]) for i in used])
 
     # 5. 附加规则
     route_path = catalog.find(model).app_status if model and catalog.find(model) else None
@@ -166,10 +193,20 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
             res["citations"].append(citation(kid))
     if "出血" in question:
         res["notices"].append("持续出血请先看牙医。")
+    if re.search(BRUSH_HEAD_LIFE, question):  # 刷头更换类：固定给官方周期和提醒入口（v1 bad case 3）
+        head = chunk_by_id("KB-HEAD-01")
+        if head:
+            res["notices"].append(f"官方更换周期：{head.title.split('：')[-1]}（{head.chunk_id}）。")
+            if all(c["chunk_id"] != head.chunk_id for c in res["citations"]):
+                res["citations"].append(citation(head))
+        res["notices"].append({"smart": "你的型号可以在笑容加 App 里查看刷头使用天数和更换提醒。",
+                               "basic": "可以在首次设置页填写开始使用日期，开启刷头更换提醒。"}.get(
+            route_path, "基础款可以在小程序开启刷头更换提醒；智能款在笑容加 App 里查看。"))
     if device_summary:
         res["simulated"] = True
         res["notices"].insert(0, f"参考了你的牙刷数据（{SIMULATED_LABEL}），数据更新时间：{device_summary.get('updated_at', '模拟')}")
-        if mode in ("mock", "fallback") and device_summary.get("force_overuse") == "较多（模拟）":
-            res["notices"].append("你的牙刷数据显示近期力度过大次数较多，刷牙时注意减轻按压力度。")
+        # 设备数据的个性化提醒用规则加，不依赖模型是否用上（v1 bad case 2）
+        if "较多" in str(device_summary.get("force_overuse", "")):
+            res["notices"].append(f"你的牙刷数据显示近期力度过大次数较多（{SIMULATED_LABEL}），刷牙时注意减轻按压力度。")
     res["model"] = model
     return res

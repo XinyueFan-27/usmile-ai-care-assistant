@@ -67,3 +67,38 @@ def test_citation_formats_and_punctuation_only(fake_catalog, fake_index, monkeyp
     monkeypatch.setattr(qa, "_generate", lambda *a: ("测试回答 [1, 2]。", "llm:测试模型"))
     r = qa.answer("测试型号A 续航", fake_catalog, index=fake_index)
     assert r["type"] == "answer" and len(r["citations"]) == 2 and r["llm_model"] == "测试模型"
+
+
+def test_battery_number_must_match_battery_days(fake_catalog):
+    """测试用假数据：测试型号A 的 battery_days 是 365。"""
+    m = fake_catalog.find("测试型号A")
+    assert reasons.check_reasons([{"reason": "续航 365 天"}, {"reason": "有呵护模式"}], m, fake_catalog)
+    # 3 出现在参数里（更换周期），但不是续航天数
+    assert not reasons.check_reasons([{"reason": "续航 3 天"}, {"reason": "有呵护模式"}], m, fake_catalog)
+
+
+def test_device_hint_and_brush_head_notice(fake_catalog, fake_index):
+    r = qa.answer("测试型号B 刷头更换", fake_catalog, model="测试型号B",
+                  device_summary={"force_overuse": "较多（模拟）", "updated_at": "模拟"}, use_llm=False, index=fake_index)
+    assert any("按压力度" in n and SIMULATED_LABEL in n for n in r["notices"])
+    assert any("笑容加 App" in n for n in r["notices"])  # 测试型号B 是智能款
+
+
+def test_unsupported_claim_dropped(fake_catalog, fake_index, monkeypatch):
+    """测试用假数据：模型说“能刷干净”，但引用的假知识块里没有 → 不采用该回答。"""
+    monkeypatch.setattr(qa, "_generate", lambda *a: ("测试型号A 能刷干净 [1]。", "llm:测试模型"))
+    r = qa.answer("测试型号A 续航", fake_catalog, index=fake_index)
+    assert r.get("dropped") == "claim" and "能刷干净" not in r["answer"]
+
+
+def test_high_score_no_evidence_shows_kb_summary(fake_catalog, fake_index, monkeypatch):
+    monkeypatch.setattr(qa, "_generate", lambda *a: ("NO_EVIDENCE", "llm:测试模型"))
+    monkeypatch.setitem(qa.HIGH_SCORE, "tfidf", 0.0)
+    r = qa.answer("测试型号A 续航", fake_catalog, index=fake_index)
+    assert r["mode"] == "kb_summary" and r["citations"]
+
+
+def test_default_claim_needs_source(fake_catalog, fake_index, monkeypatch):
+    """测试用假数据：假知识块里没写“默认”，模型说“默认模式为测试呵护”→ 不采用。"""
+    monkeypatch.setattr(qa, "_generate", lambda *a: ("测试型号A 默认模式为测试呵护 [1]。", "llm:测试模型"))
+    assert qa.answer("测试型号A 续航", fake_catalog, index=fake_index).get("dropped") == "claim"

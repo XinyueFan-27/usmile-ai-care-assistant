@@ -15,12 +15,14 @@ def fallback_model() -> str | None:
     return os.getenv("ZHIPU_FALLBACK_MODEL") or os.getenv("ZHIPU_TAG_MODEL") or None
 
 
-def generate(messages: list[dict], timeout: float = 20) -> tuple[str, str]:
+def generate(messages: list[dict], timeout: float = 20, temperature: float = 0.0) -> tuple[str, str]:
     """返回 (回复文本, 实际使用的模型名)。主备都失败时抛出 RuntimeError。"""
     from src import llm
 
     patient = os.getenv("DEMO_LLM_PATIENT") == "1"
-    opts = {} if patient else {"retries": 1, "timeout": timeout}
+    opts = {"temperature": temperature}  # 默认 0：同一问题的回答尽量稳定（v2 发现两次跑结果差别大）
+    if not patient:
+        opts.update(retries=1, timeout=timeout)
     primary = llm.model_name()
     try:
         return llm.chat(messages, model=primary, **opts) or "", primary

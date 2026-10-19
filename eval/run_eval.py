@@ -90,7 +90,7 @@ def run_case(cid: str, s) -> dict:
         q = QUOTES[qid] if qid else text
         r["input"], r["input_id"] = q, (qid or "构造")
         res = s.ask(q, **kw)
-        r["output"] = res["answer"]
+        r["output"] = res["answer"] + (" ｜提示：" + "；".join(res["notices"]) if res.get("notices") else "")
         r["citations"] = "；".join(c["chunk_id"] for c in res["citations"])
         r["mode"] = res.get("mode", "rule")
         r["llm_model"] = res.get("llm_model") or ""
@@ -130,7 +130,8 @@ def run_case(cid: str, s) -> dict:
         a = {**BASE_ANSWERS, "q4": ["续航长"]}
         res = s.recommend(a)
         rs = res["main"]["reasons"]
-        r["input"], r["input_id"], r["output"] = json.dumps(a, ensure_ascii=False), "构造", " / ".join(x["reason"] for x in rs["reasons"])
+        r["input"], r["input_id"] = json.dumps(a, ensure_ascii=False), "构造"
+        r["output"] = f"主推 {res['main']['model']}：" + " / ".join(x["reason"] for x in rs["reasons"])
         r["mode"] = rs["by"]
         r["llm_model"] = rs.get("llm_model", "")
         r["citations"] = "；".join(sorted({i for x in rs["reasons"] for i in x.get("sources", [])}))
@@ -174,7 +175,8 @@ def run_case(cid: str, s) -> dict:
     elif cid == "E-14":
         first = ask("Q052")
         second = s.ask(QUOTES["Q052"], model=BASIC, followup_done=True)
-        r["output"] = f"第 1 轮：{first['answer']}｜第 2 轮（选 {BASIC}）：{second['answer']}"
+        r["output"] = f"第 1 轮：{first['answer']}｜第 2 轮（选 {BASIC}）：{second['answer']}" + (
+            " ｜提示：" + "；".join(second["notices"]) if second.get("notices") else "")
         r["citations"] = "；".join(c["chunk_id"] for c in second["citations"])
         r["mode"] = second.get("mode", "rule")
         r["llm_model"] = second.get("llm_model") or ""
@@ -182,7 +184,7 @@ def run_case(cid: str, s) -> dict:
                                   "第 1 轮只追问；第 2 轮按型号回答并有出处（内容正确性另需人工看）")
     elif cid == "E-15":
         res = ask("Q012")
-        r["note"] = f"type={res['type']}；注意：知识库 KB-APP-04 已收录 App 海外限制，本题期望可能要在第 ⑫ 步改为“按资料回答”"
+        r["note"] = f"type={res['type']}；D42：应按 KB-APP-04 如实说明海外限制并标出处；引用含 KB-APP-04={'KB-APP-04' in r['citations']}"
     elif cid == "E-16":
         res = ask("Q002")
         r["auto"], r["note"] = ok(res["type"] == "subjective", f"type={res['type']}")
