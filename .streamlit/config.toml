@@ -1,0 +1,13 @@
+# 配色借用 usmile App 蓝色主题（D31），不使用商标和图标
+[theme]
+base = "light"
+primaryColor = "#007CFA"
+backgroundColor = "#F3F3F5"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1F2329"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

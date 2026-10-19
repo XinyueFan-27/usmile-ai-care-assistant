@@ -3,5 +3,11 @@ python-dotenv
 pandas
 matplotlib
 playwright
-rapidocr_onnxruntime  # 步骤 ⑩：详情图本地 OCR
-pypdf  # 步骤 ⑩：提取权威科普 PDF 文字
+# 步骤 ⑪ Demo
+fastapi
+uvicorn
+streamlit
+sentence-transformers
+faiss-cpu
+pytest
+httpx

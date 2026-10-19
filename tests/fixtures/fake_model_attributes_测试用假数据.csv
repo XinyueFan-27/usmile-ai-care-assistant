@@ -1,0 +1,6 @@
+model,category,jd_list_price,jd_list_price_src,modes,modes_src,battery_days,battery_days_src,app_support,app_support_src,standard_heads,standard_heads_src,head_replace_months,head_replace_months_src,first_use_mode,first_use_mode_src,sensitive_advice,sensitive_advice_src,zone_or_miss_reminder,zone_or_miss_reminder_src,smart_recognition,smart_recognition_src,noise,noise_src,travel_case,travel_case_src,notes
+测试型号A,成人,150,T01,清洁/亮白/呵护,T01,365,T01,否,T01,测试清洁刷头×2,T01,3,T01,测试呵护,T01,轻度敏感：测试呵护模式,T01,是（测试换区提醒）,T01,未提及,T01,46-65dB,T01,否,T01,测试用假数据
+测试型号B,成人,150,T02,清洁/亮白,T02,90,T02,是,T02,测试亮白刷头×1、测试呵护刷头×1,T02,【待核实】,,测试清洁,T02,【待核实】,,是（测试漏刷提醒）,T02,是（测试识别）,T02,45dB及以下,T02,是,T02,测试用假数据
+测试型号C,成人,350,T03,呵护,T03,200,T03,【待核实】,,【待核实】,,3,T03,【待核实】,,【待核实】,,【待核实】,,【待核实】,,【待核实】,,【待核实】,,测试用假数据
+测试型号D,成人,【待核实】,,清洁,T04,400,T04,是,T04,测试刷头,T04,3,T04,测试清洁,T04,【待核实】,,是,T04,是,T04,40dB,T04,是,T04,测试用假数据：价格待核实，不应进入任何预算
+测试儿童E,儿童,120,T05,测试儿童模式,T05,90,T05,是,T05,测试儿童刷头,T05,3,T05,【待核实】,,【待核实】,,是,T05,【待核实】,,【待核实】,,【待核实】,,测试用假数据：儿童款不进测评

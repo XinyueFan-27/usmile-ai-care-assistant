@@ -129,7 +129,7 @@ app.py             Streamlit Demo
 | 10/16 | 数据采集 | data/raw/ 三个文件 | ✅ 完成 |
 | 10/17 | ① 清洗 → ② 确认标签表 → ③ LLM 打标签 → ④ 抽检 → ⑤ 存入 SQLite + SQL 分析 → ⑥ 痛点矩阵 | `reviews_clean.csv`、`reviews_tagged.csv`、`analysis.sql`、`pain_matrix.png`、3–5 条洞察 | ✅ 10/16 提前完成 |
 | 10/18 | ⑦ 概念卡 → ⑧ PRD v1.0 → ⑨ 6 屏原型 → ⑩ 抓取知识库原文 | `concept_card.md`、`PRD_v1.0.md`、`prototype/`、`kb/`、`sources.md` | ⑦ ⑧ ⑨ ✅ 10/16 完成；⑩ ✅ 10/18 完成（`kb/`、`kb/sources.md`、`kb/model_attributes.csv`、`docs/kb_backfill.md`） |
-| 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 20 题评测 v1 | `app.py`、`src/rag.py`、`eval_results_v1.csv` | |
+| 10/19 | ⑪ Demo v1（问卷 + 推荐卡 + 首次设置 + RAG 问答 + 刷头提醒模拟）→ ⑫ 25 题评测 v1 | `app.py`、`src/core/`、`src/api.py`、`eval/run_eval.py`、`eval_results_v1.csv` | ⑪ 骨架 ✅ 10/18 完成（D40）；⑫ 待做 |
 | 10/20 上午 | ⑬ 根据 bad case 改一轮 → 评测 v2 → ⑭ README + 简历 bullet 填数 → 投递 | `eval_results_v2.csv`、README、简历 | |
 
 **优先级**：①–⑧ 必须完成（简历的硬证据）。⑪–⑬ 是加分项，来不及就在简历上只写已完成的部分。
@@ -154,7 +154,7 @@ app.py             Streamlit Demo
 
 ## 10. 下一步（新会话从这里开始）
 
-**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D39。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
+**已完成（10/16）**：①–⑨。结果见 `docs/METHODS.md` 各步、`docs/insights.md`、`docs/concept_card.md` v1.0、`docs/PRD_v1.0.md`、`results/`。决策到 D40。引用核对统一用 `.venv/bin/python src/check_quotes.py <文件>`。PRD 是对外文档（D28）：不放内部编号，原话编号写在隐藏注释里；验收标准 ↔ 评测题对照见 `eval/acceptance_mapping.md`。
 
 **PRD 已按小程序与笑容加 App 分工修改（D32–D36，10/18）**：购后按型号分流（智能款 → App；基础款 → 首次设置和刷头提醒），周报已删除，评测对照扩到 25 题（E-25 用模拟设备数据，须标注）。PRD 第十章已嵌入定稿原型截图（12 张）。
 
@@ -164,7 +164,9 @@ app.py             Streamlit Demo
 
 **⑩ 知识库已完成（D37、D38，10/18）**：`kb/` 12 个主题文件、85 个知识块，每块带来源编号、来源级别（1 品牌官方 / 2 权威科普）、抓取日期，格式见 `kb/README.md`；来源清单 `kb/sources.md`；型号属性表 `kb/model_attributes.csv`（17 个型号，每字段带出处列，`src/kb_build_attributes.py` 生成）。长篇原文和详情图存 `data/processed/kb_raw/`（不提交）。摘录核对用 `.venv/bin/python src/kb_check_quotes.py`。结论：刷头更换周期 3 个月；有儿童线（Q30 / Q20Pro / Q20 等）；Y30 有官方证据支持笑容加 App（官网下载页列表未更新）。PRD 和原型可回填的内容见 `docs/kb_backfill.md`（由 PRD / 原型会话负责改）。**D39 已定**：Y30 走智能款；测评价位段 200 以下 / 200–400 / 400–800 / 800 以上；儿童不进测评、只在问答引导；“最低档”改为官方起始模式（P10 → 呵护；Y30 首次 → 早晚双效，敏感 → 柔感呵护）。
 
-**下一步：⑪ Demo v1**（`app.py` + `src/rag.py`）。RAG 只检索 `kb/`：按 `### KB-` 标题切块，块内“适用 / 来源 / 来源级别 / 抓取日期”作为元数据，回答引用块编号并显示来源名称和链接（`kb/sources.md`）；推荐规则读 `kb/model_attributes.csv`，值为【待核实】或“未提及”的字段不参与打分；价位段按 D39 的 4 段；儿童型号（category=儿童）不进推荐。
+**⑪ Demo 骨架已完成（D40，10/18）**：后端核心 `src/core/`（规则推荐、分流、安全边界、bge + FAISS 检索、GLM 问答、刷头提醒、画像同步、V2 模拟设备数据），对外只走 `src/core/service.py`；HTTP 接口 `src/api.py`（说明 `docs/API.md`，启动 `.venv/bin/uvicorn src.api:app --port 8000`）；前端 `.venv/bin/streamlit run app.py`；测试 `.venv/bin/python -m pytest`（30 个，假数据只在 `tests/`）。没有 Key 时自动 mock 并在界面标明。方法和已知问题见 METHODS 第 11 步。
+
+**下一步：⑫ 评测 v1**：`.venv/bin/python eval/run_eval.py`（不加 `--mock`，用 GLM 正式跑），输出 `eval/eval_results_v1.csv`；规则类 16 题已能自动判分，其余按四个维度人工打分（`weighted()` 算加权分）。先处理 METHODS 第 11 步列的 5 个已知问题里能判断的部分（E-15 期望答案、E-25 没答上、GLM 限流导致慢），结果回填 PRD 5.3、附录 B、附录 C（由 PRD 会话改）。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
