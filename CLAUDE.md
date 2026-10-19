@@ -174,7 +174,7 @@ app.py             Streamlit Demo
 
 **⑭ 收尾（10/19）**：PRD 附录 C 已完成（af18605）；README 已重写（da95553）；推送前检查通过（见 METHODS 第 14 步）。
 
-**下一步**：① ~~复核评测 v2 分数~~（已完成，D50）；② Melody 在 GitHub 建空的公开仓库 `usmile-ai-care-assistant` 并确认后，再 `git remote add` + 推送（本机没有 gh）；③ 投递。
+**下一步**：① ~~复核评测 v2 分数~~（D50）；② ~~推送~~：已推送到 https://github.com/XinyueFan-27/usmile-ai-care-assistant （10/19，main）；③ 投递。之后每次改动照常 commit 后 `git push`。
 
 以下是步骤 ⑧ 的原始说明，留作参考：
 
