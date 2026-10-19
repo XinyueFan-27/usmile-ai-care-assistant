@@ -33,10 +33,28 @@ header[data-testid="stHeader"]{display:none}
 .warn{background:var(--warn-weak);border-color:#f5c2be}
 .sim{border:2px dashed var(--warn);color:var(--warn);border-radius:8px;padding:6px 10px;font-weight:600;margin:6px 0;font-size:13px}
 .mock{background:var(--amber-weak);color:var(--amber);border-radius:8px;padding:6px 10px;font-size:13px;margin:6px 0}
-.src{font-size:12px;color:var(--sub);margin-top:6px}
-.src a{color:var(--brand)}
+.src{font-size:12px;color:var(--ph-text);margin-top:6px}
+.ref{display:inline-block;font-size:11px;line-height:16px;padding:0 5px;margin-left:3px;border-radius:4px;background:var(--ph-bg);color:var(--ph-text);vertical-align:1px}
+details.srcs{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;color:var(--sub)}
+details.srcs summary{cursor:pointer;color:var(--ph-text);list-style:none}
+details.srcs summary::before{content:"▸ "}
+details.srcs[open] summary::before{content:"▾ "}
+details.srcs ol{margin:6px 0 0 18px;padding:0}
+details.srcs li{margin:4px 0;line-height:1.5}
+details.srcs a{color:var(--sub);text-decoration:underline;text-decoration-color:#c9cdd4}
+.reason{margin:4px 0}
+.bubble-q{background:var(--brand);color:#fff;border-radius:16px 16px 4px 16px;padding:10px 14px;margin:12px 0 4px 56px;font-size:15px}
+.card h4{font-size:17px;margin:2px 0 4px}
+.price{color:var(--sub);font-size:14px}
+[data-testid="stHorizontalBlock"]{flex-wrap:nowrap!important;gap:10px}
+[data-testid="stHorizontalBlock"]>div{min-width:0!important;flex:1 1 0!important;width:auto!important}
+#MainMenu,footer,[data-testid="stToolbar"],[data-testid="stDecoration"]{display:none!important}
+div.stButton>button,div.stLinkButton>a{border-radius:22px;border:1px solid var(--line);background:#fff;min-height:44px}
+div.stButton>button[kind="primary"]{background:var(--brand);border-color:var(--brand);color:#fff}
+div.stButton>button:hover{border-color:var(--brand);color:var(--brand)}
+div.stButton>button[kind="primary"]:hover{color:#fff;filter:brightness(1.05)}
 .disc{font-size:12px;color:var(--sub);margin-top:8px}
-.foot{font-size:12px;color:var(--ph-text);text-align:center;margin-top:24px;border-top:1px solid var(--line);padding-top:8px}
+.foot{font-size:11px;color:var(--ph-text);text-align:center;margin-top:20px;border-top:1px solid var(--line);padding-top:8px;line-height:1.6}
 .pending{color:var(--ph-text)}
 </style>
 """,
@@ -76,25 +94,32 @@ def show_value(text: str) -> str:
 
 
 def src_html(ids: list[str]) -> str:
+    """每句后面只放灰色小标签（来源编号），完整名称和链接收进卡片底部的“出处”（sources_box）。"""
     if not ids:
         return ""
-    parts = []
-    for i in ids:
-        s = SOURCES.get(i)
-        parts.append(f'<a href="{s["url"]}" target="_blank">{i} {esc(s["name"])}</a>' if s and s["url"] else esc(i))
-    return '<div class="src">出处：' + "；".join(parts) + "（抓取日期 2026-10-18）</div>"
+    return " " + "".join(f'<span class="ref">{esc(i)}</span>' for i in dict.fromkeys(ids))
+
+
+def sources_box(ids: list[str] | None = None, citations: list[dict] | None = None) -> str:
+    """卡片底部可展开的出处：来源名称 + 链接 + 抓取日期。"""
+    rows = []
+    for c in citations or []:
+        links = "、".join(f'<a href="{s["url"]}" target="_blank">{esc(s["name"])}</a>' if s.get("url") else esc(s["name"])
+                         for s in c["sources"])
+        rows.append(f'<li><b>{esc(c["chunk_id"])}</b> {esc(c["title"])}<br>{links}（{esc(c["fetched"])}）</li>')
+    for i in dict.fromkeys(ids or []):
+        src = SOURCES.get(i)
+        name = f'<a href="{src["url"]}" target="_blank">{esc(src["name"])}</a>' if src and src["url"] else esc(i)
+        rows.append(f"<li><b>{esc(i)}</b> {name}</li>")
+    if not rows:
+        return ""
+    return (f'<details class="srcs"><summary>出处 · {len(rows)} 条（点开看来源链接，抓取日期 2026-10-18）</summary>'
+            f'<ol>{"".join(rows)}</ol></details>')
 
 
 def cite_html(citations: list[dict]) -> str:
-    if not citations:
-        return ""
-    rows = []
-    for c in citations:
-        links = "、".join(
-            f'<a href="{s["url"]}" target="_blank">{esc(s["name"])}</a>' if s.get("url") else esc(s["name"]) for s in c["sources"]
-        )
-        rows.append(f'{c["chunk_id"]} {esc(c["title"])}｜{links}｜{c["fetched"]}')
-    return '<div class="src">出处：<br>' + "<br>".join(rows) + "</div>"
+    """问答回答的出处：正文已用 [1][2] 标号，这里按同样顺序折叠列出。"""
+    return sources_box(citations=citations)
 
 
 def model_note(model: str | None) -> str:
@@ -174,14 +199,18 @@ def page_quiz():
 # ---------------- 推荐卡 ----------------
 def model_card(card: dict, title: str):
     reasons = card.get("reasons", {})
-    html = f'<div class="card"><span class="tag">{title}</span><br><b style="font-size:17px">{esc(card["model"])}</b>'
-    html += f'　<span style="color:#646a73">京东官方自营店标价 ¥{show_value(card["price"])}</span>'
-    html += src_html(card["price_sources"])
-    html += f'<div style="margin-top:8px"><b>推荐刷头</b>：{show_value(card["brush_head"]["text"])}</div>{src_html(card["brush_head"]["sources"])}'
-    html += '<div style="margin-top:8px"><b>推荐理由</b>' + ("（模板文案）" if reasons.get("by") == "template" else "（大模型根据官方参数撰写）") + "</div>"
+    head = card["brush_head"]
+    ids = list(card["price_sources"]) + list(head["sources"])
+    html = f'<div class="card"><span class="tag">{title}</span><h4>{esc(card["model"])}</h4>'
+    html += f'<div class="price">¥{show_value(card["price"])}　京东官方自营店标价{src_html(card["price_sources"])}</div>'
+    html += f'<div style="margin-top:10px"><b>推荐刷头</b>　{show_value(head["text"])}{src_html(head["sources"])}</div>'
+    by = "模板文案" if reasons.get("by") == "template" else "大模型根据官方参数撰写"
+    html += f'<div style="margin-top:10px"><b>推荐理由</b> <span class="src">{by}</span></div>'
     for r in reasons.get("reasons", []):
-        html += f'<div>· {esc(r["reason"])}</div>{src_html(r.get("sources", []))}'
-    html += model_note(reasons.get("llm_model"))
+        label = "" if r["reason"].startswith("你选了") else f'<b>{esc(r.get("option", ""))}</b>　'
+        html += f'<div class="reason">· {label}{esc(r["reason"])}{src_html(r.get("sources", []))}</div>'
+        ids += r.get("sources", [])
+    html += model_note(reasons.get("llm_model")) + sources_box(ids)
     st.markdown(html + "</div>", unsafe_allow_html=True)
 
 
@@ -209,7 +238,8 @@ def page_rec():
     if res.get("notes"):
         html = '<div class="card warn"><b>使用注意</b>'
         for n in res["notes"]:
-            html += f'<div>· {esc(n["text"])}</div>{src_html(n["sources"])}'
+            html += f'<div class="reason">· {esc(n["text"])}{src_html(n["sources"])}</div>'
+        html += sources_box([i for n in res["notes"] for i in n["sources"]])
         st.markdown(html + "</div>", unsafe_allow_html=True)
     if res["status"] == "ok":
         c1, c2 = st.columns(2)
@@ -252,7 +282,7 @@ def page_bind():
         unsafe_allow_html=True,
     )
     st.link_button("下载笑容加 App（usmile 官网下载中心）", "https://www.usmile.com/cn/download", use_container_width=True)
-    st.markdown(src_html(["S10"]), unsafe_allow_html=True)
+    st.markdown(sources_box(["S10"]), unsafe_allow_html=True)
     if st.button("去 App 绑定", type="primary", use_container_width=True):
         go("sync" if ss.answers.get("q1") else "bound")
     if st.button("已绑定，去 App 设置", use_container_width=True):
@@ -309,11 +339,15 @@ def page_setup():
             st.markdown(f'<div class="card"><span class="tag">通用建议</span> 确认型号前只给通用建议。<br>'
                         f'查看型号的方法：{show_value(r["how_to_find_model"])}</div>', unsafe_allow_html=True)
         html = '<div class="card">'
+        ids, cits = [], []
         for it in r.get("items", []):
-            html += f'<div style="margin-top:6px"><b>{esc(it["name"])}</b>：{show_value(it["text"])}</div>'
-            html += src_html(it.get("sources", [])) + cite_html(it.get("citations", []))
+            refs = list(it.get("sources", [])) + [c["chunk_id"] for c in it.get("citations", [])]
+            html += f'<div style="margin-top:8px"><b>{esc(it["name"])}</b><br>{show_value(it["text"])}{src_html(refs)}</div>'
+            ids += it.get("sources", [])
+            cits += it.get("citations", [])
         for n in r.get("notes", []):
             html += f'<div class="disc">· {esc(n)}</div>'
+        html += sources_box(ids, cits)
         st.markdown(html + "</div>", unsafe_allow_html=True)
 
     st.markdown("**刷头更换提醒**（模拟）")
@@ -321,7 +355,8 @@ def page_setup():
     rem = service.reminder(ss.model, start.isoformat(), ss.get("subscribed", False))
     if rem["status"] == "ok":
         st.markdown(f'<div class="card">官方更换周期：{rem["cycle"]}{src_html(rem["cycle_sources"])}'
-                    f'<b>下次更换日期：{rem["next_date"]}</b><div class="disc">{rem["message"]}</div></div>', unsafe_allow_html=True)
+                    f'<div style="font-size:18px;margin-top:6px"><b>下次更换：{rem["next_date"]}</b></div>'
+                    f'<div class="disc">{rem["message"]}</div>{sources_box(rem["cycle_sources"])}</div>', unsafe_allow_html=True)
         if not ss.get("subscribed") and st.button("提醒我", use_container_width=True):
             ss.ask_subscribe = True
         if ss.get("ask_subscribe") and not ss.get("subscribed"):
@@ -350,13 +385,13 @@ def run_ask(question: str, followup_done: bool = False, model: str | None = None
         res = service.ask(question, m, followup_done, use_device_data=ss.get("use_device", False))
     ss.chat.append({"q": question, "res": res})
     if res["type"] == "boundary":
-        ss.boundary = res
+        ss.boundary = {**res, "question": question}
         go("boundary")
 
 
 def render_answer(item: dict, k: int):
     res = item["res"]
-    st.markdown(f'<div class="card" style="background:#e6f2ff;margin-left:40px">{esc(item["q"])}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="bubble-q">{esc(item["q"])}</div>', unsafe_allow_html=True)
     html = '<div class="card">'
     if res.get("simulated"):
         html += f'<div class="sim">{META["simulated_label"]}</div>'
@@ -413,7 +448,7 @@ def page_chat():
         ss.use_device = False
     if ss.get("use_device"):
         st.markdown(f'<div class="sim">{META["simulated_label"]}：已授权的设备数据摘要只用于个性化问答，不展示完整报告</div>', unsafe_allow_html=True)
-    with st.expander("示例问题（京东买家提问 / 评论原文）"):
+    with st.expander("示例问题（京东买家提问 / 评论原文）", expanded=not ss.chat):
         for i, (qid, text) in enumerate(EXAMPLES):
             if st.button(text, key=f"ex_{i}"):
                 run_ask(text)
@@ -435,6 +470,8 @@ def page_boundary():
     res = ss.get("boundary") or {}
     nav(res.get("title", "提示"), back="chat")
     urgent = res.get("category") == "urgent"
+    if res.get("question"):
+        st.markdown(f'<div class="bubble-q">{esc(res["question"])}</div>', unsafe_allow_html=True)
     st.markdown(
         f'<div class="card warn"><b style="font-size:{22 if urgent else 17}px">{esc(res.get("title", ""))}</b>'
         f'<div style="margin-top:8px">{esc(res.get("answer", ""))}</div>{cite_html(res.get("citations", []))}'

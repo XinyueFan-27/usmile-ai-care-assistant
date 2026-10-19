@@ -47,7 +47,7 @@ def test_basic_model_setup_and_reminder(at):
     click(at, "确认型号")
     click(at, "生成我的设置")
     text = page_text(at)
-    assert "起始模式" in text and "下次更换日期" in text
+    assert "起始模式" in text and "下次更换" in text
     click(at, "提醒我")
     click(at, "允许")
     assert "已模拟订阅" in page_text(at)
