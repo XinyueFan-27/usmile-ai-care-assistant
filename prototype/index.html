@@ -324,7 +324,7 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
           <button class="btn ghost" id="qPrev">上一题</button>
           <button class="btn" id="qNext">下一题</button>
         </div>
-        <div class="small" id="qReq" style="margin-top:8px;color:var(--warn);display:none">预算为必答题，请先选择或填写</div>
+        <div class="small" id="qReq" style="margin-top:8px;color:var(--warn);display:none">预算为必答题，请先选择</div>
       </div>
       <div class="foot">个人作品集项目，非 usmile 官方，未上线</div>
     </section>
@@ -468,7 +468,7 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
             <div id="generalTag"></div>
             <div id="unsureHelp" class="disclaimer" style="display:none;margin:0 0 10px">怎么查看自己的型号：<span class="ph">【待知识库：官方查看型号的方法】</span></div>
             <div class="item"><div class="k">起始模式</div><div class="ph">【待知识库：说明书中的模式名称】</div></div>
-            <div class="item"><div class="k">起始档位</div><div id="levelText"></div></div>
+            <div class="item"><div class="k">起步建议</div><div id="levelText"></div></div>
             <div class="item"><div class="k">刷头建议</div><div class="ph">【待知识库：官方适配刷头】</div></div>
             <div class="item"><div class="k">第一周注意事项</div><div class="ph">【待知识库：说明书中的使用注意】</div></div>
             <div class="item"><div class="k">出处</div><div class="ph">【待知识库：说明书名称 + 链接 + 更新日期】</div></div>
@@ -624,8 +624,8 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
 
   // ---------- 选购测评（题目与选项以 PRD 2.3.2 为准；前 4 题可自己填写） ----------
   var Q = [
-    {t:'你的预算区间是？', hint:'单选 · 必答 · 价位段按 usmile 官方价格划分', multi:false, req:true,
-     opts:['价位段 1 '+PH('官方价格'), '价位段 2 '+PH('官方价格'), '价位段 3 '+PH('官方价格')], custom:true},
+    {t:'你的预算区间是？', hint:'单选 · 必答 · 价位按 2026-10-18 京东官方自营店标价划分，以购买页面为准', multi:false, req:true,
+     opts:['200 元以下','200–400 元','400–800 元','800 元以上'], custom:false},
     {t:'你的牙齿情况？', hint:'多选', multi:true,
      opts:['牙龈敏感或容易出血','正在正畸','有补牙或牙龈萎缩','有牙渍或烟渍 <span class="tag assume">业务假设</span>','没有特别问题'], none:4, custom:true},
     {t:'最想解决的问题？', hint:'单选', multi:false,
@@ -689,7 +689,7 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
     var sens = ans[1].indexOf(0)>=0, newbie = ans[4][0]===0;
     $('#headType').textContent = sens ? '软毛类 · ' : '';
     var c = '<b>使用注意</b><br>';
-    if(sens || newbie) c += '· 从最低档开始，适应后再调高<br>';
+    if(sens || newbie) c += '· 从官方建议的起始模式开始，适应后再调整<br>';
     if(ans[1].indexOf(1)>=0) c += '· 正畸期间的使用注意 '+PH('权威科普')+'；具体情况请咨询正畸医生<br>';
     c += '· 其他注意事项 '+PH('官方说明书');
     if(sens) c += '<div class="bleed">持续出血请先看牙医</div>';
@@ -743,7 +743,7 @@ input[type=date]{padding:10px 12px;border:1.5px solid var(--line);border-radius:
     $('#generalTag').innerHTML = unsure ? '<span class="general">通用建议 · 确认型号后给出针对性设置</span>' : '<span class="tag hl">按你的型号和回答生成</span>';
     $('#unsureHelp').style.display = unsure ? 'block':'none';
     var low = st.first==='yes' || st.sens==='yes';
-    $('#levelText').innerHTML = low ? (unsure ? '<b>从最低档开始</b>（通用建议；确认型号后给出具体档位）' : '<b>该型号最低档</b>（第一次用或牙龈敏感，先从最低档开始）<br>'+PH('档位名称 + 说明书出处')) : PH('说明书中的推荐档位');
+    $('#levelText').innerHTML = low ? (unsure ? '<b>从官方建议的起始模式开始</b>（通用建议；确认型号后给出具体模式）' : '<b>该型号的官方起始模式</b>（第一次用或牙龈敏感，先从起始模式开始）<br>'+PH('模式名称 + 说明书出处')) : PH('说明书中的推荐档位');
     if(!$('#startDate').value){ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $('#startDate').value = d.toISOString().slice(0,10); }
   }
   $('#genBtn').onclick = function(){ genSetup(); setTimeout(function(){ $('#setupResult').scrollIntoView({behavior:'smooth'}); },50); };
