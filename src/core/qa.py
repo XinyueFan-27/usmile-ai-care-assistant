@@ -189,6 +189,15 @@ def answer(question: str, catalog: Catalog, model: str | None = None, followup_d
         res = _base("answer", text, mode=mode, llm_model=llm_model or None, retriever=index.label,
                     citations=[citation(hits[i - 1][0]) for i in used])
 
+    # 大模型没整理出可靠回答、只给资料要点时，同时引导联系官方客服（Melody 走查发现，D48）
+    if res.get("mode") == "kb_summary":
+        svc = chunk_by_id("KB-SVC-01")
+        res["notices"].append("这些资料可能没有直接回答你的问题。需要确认的话，可以联系官方客服："
+                              + (svc.summary if svc else PENDING))
+        res["actions"].append("contact_service")
+        if svc and all(c["chunk_id"] != svc.chunk_id for c in res["citations"]):
+            res["citations"].append(citation(svc))
+
     # 5. 附加规则
     route_path = catalog.find(model).app_status if model and catalog.find(model) else None
     if route_path == "smart" and re.search(DEVICE_SETTING, question, re.I):

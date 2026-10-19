@@ -113,3 +113,12 @@ def test_followup_options_only_confirmed(fake_catalog, fake_index):
     """D46 ⑫：追问选项只列 App 支持已确认的型号（测试用假数据：测试型号C 待核实，不列）。"""
     r = qa.answer(Q["Q052"], fake_catalog, use_llm=False, index=fake_index)
     assert "测试型号C" not in r["followup_options"] and "测试型号A" in r["followup_options"]
+
+
+def test_kb_summary_points_to_customer_service(fake_catalog, fake_index, monkeypatch):
+    """D48：只给资料要点时，补充说明里要有官方客服入口（测试用假数据）。"""
+    monkeypatch.setattr(qa, "_generate", lambda *a: ("NO_EVIDENCE", "llm:测试模型"))
+    monkeypatch.setitem(qa.HIGH_SCORE, "tfidf", 0.0)
+    r = qa.answer("测试型号A 续航", fake_catalog, index=fake_index)
+    assert r["mode"] == "kb_summary" and "contact_service" in r["actions"]
+    assert any("官方客服" in n for n in r["notices"])
